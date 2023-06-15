@@ -10,10 +10,10 @@ import {
   ListItemIcon,
   ListItemText,
   ThemeProvider,
-  Toolbar,
   Typography,
 } from '@mui/material'
-import { createTheme, styled } from '@mui/material/styles'
+import Toolbar from '@mui/material/Toolbar'
+import { createTheme, styled, Theme, CSSObject } from '@mui/material/styles'
 import MuiDrawer from '@mui/material/Drawer'
 
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
@@ -67,7 +67,7 @@ const theme = createTheme({
     MuiDrawer: {
       styleOverrides: {
         paper: {
-          backgroundColor: '#434E64',
+          backgroundColor: 'white',
           color: '#8391a2',
         },
       },
@@ -84,10 +84,17 @@ const theme = createTheme({
         },
       },
     },
+    MuiTypography: {
+      styleOverrides: {
+        root: {
+          fontSize: 13,
+        },
+      },
+    },
   },
 })
 
-const drawerWidth = 240
+const drawerWidth = 200
 
 interface CustomAppBarProps extends AppBarProps {
   open?: boolean

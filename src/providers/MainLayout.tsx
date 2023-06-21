@@ -1,6 +1,7 @@
 import {
   Box,
   Button,
+  Collapse,
   CssBaseline,
   Divider,
   IconButton,
@@ -19,11 +20,11 @@ import MuiDrawer from '@mui/material/Drawer'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { ReactElement, useCallback, useState } from 'react'
 import Logo from '@assets/logo.svg'
-import SpaceDashboardIcon from '@mui/icons-material/SpaceDashboard'
 import LoadingScreen from '@components/LoadingScreen'
 import MuiAppBar, { AppBarProps } from '@mui/material/AppBar'
+import { ExpandLess, ExpandMore } from '@mui/icons-material'
 
 const openedMixin = (theme: Theme): CSSObject => ({
   width: drawerWidth,
@@ -76,9 +77,9 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           '&.Mui-selected': {
-            color: '#FFFFFF',
+            color: '#000000',
             '& .MuiSvgIcon-root': {
-              color: '#FFFFFF',
+              color: 'rgba(0, 0, 0, 0.54)',
             },
           },
         },
@@ -88,6 +89,13 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           fontSize: 13,
+        },
+      },
+    },
+    MuiListItem: {
+      styleOverrides: {
+        root: {
+          marginLeft: 20,
         },
       },
     },
@@ -134,10 +142,26 @@ const Drawer = styled(MuiDrawer, {
   }),
 }))
 
+interface MenuItem {
+  displayName: string
+  link: string
+  icon?: ReactElement
+  subs?: MenuItem[]
+  open?: boolean
+}
+
 const MainLayout = () => {
-  const itemList = useMemo(() => {
-    return [{ label: 'Dashboard', icon: <SpaceDashboardIcon />, link: '/' }]
-  }, [])
+  const [itemList, setItmeList] = useState<MenuItem[]>([
+    {
+      displayName: 'Scale',
+      link: '/scale/major',
+      subs: [{ displayName: 'Major', link: '/scale/major' }],
+    },
+    {
+      displayName: 'Two-Five-One',
+      link: '/twofiveone',
+    },
+  ])
 
   const [open, setOpen] = useState(true)
   const navigate = useNavigate()
@@ -146,22 +170,13 @@ const MainLayout = () => {
     setOpen(!open)
   }, [open])
 
-  return (
-    <Box sx={{ display: 'flex' }}>
-      <CssBaseline />
-
-      <ThemeProvider theme={theme}>
-        <Drawer variant="permanent" open={open}>
-          <DrawerHeader>
-            {open && <img alt="logo" src={Logo} width="10%" />}
-            <IconButton onClick={handleToggleDrawer}>
-              {open ? <ChevronLeftIcon /> : <ChevronRightIcon />}
-            </IconButton>
-          </DrawerHeader>
-          <Divider />
-          <List>
-            {itemList.map((item, index) => {
-              return (
+  const menuElement = useCallback(
+    (menuItemList: MenuItem[]) => {
+      return (
+        <List>
+          {menuItemList.map((item, index) => {
+            return (
+              <>
                 <ListItem key={index} disablePadding sx={{ display: 'block' }}>
                   <ListItemButton
                     sx={{
@@ -179,24 +194,65 @@ const MainLayout = () => {
                         : location.pathname)
                     }
                   >
-                    <ListItemIcon
-                      sx={{
-                        minWidth: 0,
-                        mr: open ? 3 : 'auto',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      {item.icon}
-                    </ListItemIcon>
+                    {item.icon && (
+                      <ListItemIcon
+                        sx={{
+                          minWidth: 0,
+                          mr: open ? 3 : 'auto',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        {item.icon}
+                      </ListItemIcon>
+                    )}
                     <ListItemText
-                      primary={item.label}
+                      primary={item.displayName}
                       sx={{ opacity: open ? 1 : 0 }}
                     />
+
+                    {item.subs && (
+                      <>
+                        <ListItemButton
+                          onClick={() => {
+                            item.open = !item.open
+
+                            setItmeList([...itemList])
+                          }}
+                        >
+                          {item.open ? <ExpandLess /> : <ExpandMore />}
+                        </ListItemButton>
+                      </>
+                    )}
                   </ListItemButton>
+
+                  {item.subs && (
+                    <Collapse in={item.open} timeout="auto" unmountOnExit>
+                      {menuElement(item.subs)}
+                    </Collapse>
+                  )}
                 </ListItem>
-              )
-            })}
-          </List>
+              </>
+            )
+          })}
+        </List>
+      )
+    },
+    [itemList, location.pathname, navigate, open]
+  )
+  return (
+    <Box sx={{ display: 'flex' }}>
+      <CssBaseline />
+
+      <ThemeProvider theme={theme}>
+        <Drawer variant="permanent" open={open}>
+          <DrawerHeader>
+            {open && <img alt="logo" src={Logo} width="10%" />}
+            <IconButton onClick={handleToggleDrawer}>
+              {open ? <ChevronLeftIcon /> : <ChevronRightIcon />}
+            </IconButton>
+          </DrawerHeader>
+          <Divider />
+          {menuElement(itemList)}
           <Divider />
         </Drawer>
         <Box sx={{ flex: 1, overflow: 'auto' }}>

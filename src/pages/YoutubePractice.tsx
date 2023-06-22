@@ -1,15 +1,15 @@
-import { Box } from '@mui/material'
+import { Box, TextField } from '@mui/material'
 
 const YoutubePractice = () => {
   return (
-    <iframe
-      src="https://convert2mp3s.com/api/single/mp3?url=https://www.youtube.com/watch?v=pRpeEdMmmQ0"
-      width="100%"
-      height="100%"
-      allowtransparency="true"
-      scrolling="no"
-      // style="border:none"
-    ></iframe>
+    <Box>
+      <TextField
+        sx={{ minWidth: 380 }}
+        id="standard-basic"
+        label="Youtube link"
+        variant="standard"
+      />
+    </Box>
   )
 }
 

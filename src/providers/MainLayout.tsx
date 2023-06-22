@@ -111,7 +111,7 @@ interface CustomAppBarProps extends AppBarProps {
 const AppBar = styled(MuiAppBar, {
   shouldForwardProp: (prop) => prop !== 'open',
 })<CustomAppBarProps>(({ theme, open }) => ({
-  zIndex: theme.zIndex.drawer + 1,
+  zIndex: theme.zIndex.drawer + -1,
   transition: theme.transitions.create(['width', 'margin'], {
     easing: theme.transitions.easing.sharp,
     duration: theme.transitions.duration.leavingScreen,
@@ -259,7 +259,12 @@ const MainLayout = () => {
           {menuElement(itemList)}
           <Divider />
         </Drawer>
-        <Box sx={{ flex: 1, overflow: 'auto' }}>
+        <Box
+          sx={{
+            flex: 1,
+            overflow: 'auto',
+          }}
+        >
           <AppBar
             sx={{
               width: '100%',
@@ -278,7 +283,12 @@ const MainLayout = () => {
             </Toolbar>
           </AppBar>
           <LoadingScreen />
-          <Box component="main" sx={{ p: 2 }}>
+          <Box
+            component="main"
+            display="flex"
+            justifyContent="center"
+            sx={{ p: 2 }}
+          >
             <Outlet />
           </Box>
         </Box>

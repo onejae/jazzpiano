@@ -1,5 +1,4 @@
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
-import './App.css'
 import MainLayout from './providers/MainLayout'
 import TwoFiveOne from '@pages/TwoFiveOne'
 import MajorScale from '@pages/Scale'

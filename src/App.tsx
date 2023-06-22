@@ -3,6 +3,7 @@ import './App.css'
 import MainLayout from './providers/MainLayout'
 import TwoFiveOne from '@pages/TwoFiveOne'
 import MajorScale from '@pages/Scale'
+import YoutubePractice from '@pages/YoutubePractice'
 
 const router = createBrowserRouter([
   {
@@ -13,6 +14,12 @@ const router = createBrowserRouter([
         index: true,
         path: 'twofiveone',
         element: <TwoFiveOne />,
+      },
+
+      {
+        index: true,
+        path: 'youtubepractice',
+        element: <YoutubePractice />,
       },
       {
         path: 'scale',

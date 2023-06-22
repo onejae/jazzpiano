@@ -161,6 +161,10 @@ const MainLayout = () => {
       displayName: 'Two-Five-One',
       link: '/twofiveone',
     },
+    {
+      displayName: 'Play with Youtube',
+      link: '/youtubepractice',
+    },
   ])
 
   const [open, setOpen] = useState(true)

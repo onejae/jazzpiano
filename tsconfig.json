@@ -24,7 +24,8 @@
       "@components/*": ["components/*"],
       "@providers/*": ["providers/*"],
       "@pages/*": ["pages/*"],
-      "@assets/*": ["assets/*"]
+      "@assets/*": ["assets/*"],
+      "@services/*": ["services/*"]
     }
   },
   "include": ["src"],

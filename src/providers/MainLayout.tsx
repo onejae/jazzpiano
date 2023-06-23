@@ -180,62 +180,60 @@ const MainLayout = () => {
         <List>
           {menuItemList.map((item, index) => {
             return (
-              <>
-                <ListItem key={index} disablePadding sx={{ display: 'block' }}>
-                  <ListItemButton
-                    sx={{
-                      minHeight: 48,
-                      justifyContent: open ? 'initial' : 'center',
-                      px: 2.5,
-                    }}
-                    onClick={() => {
-                      navigate(item.link)
-                    }}
-                    selected={
-                      item.link ===
-                      (location.pathname === '/'
-                        ? '/medicalrecord'
-                        : location.pathname)
-                    }
-                  >
-                    {item.icon && (
-                      <ListItemIcon
-                        sx={{
-                          minWidth: 0,
-                          mr: open ? 3 : 'auto',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        {item.icon}
-                      </ListItemIcon>
-                    )}
-                    <ListItemText
-                      primary={item.displayName}
-                      sx={{ opacity: open ? 1 : 0 }}
-                    />
-
-                    {item.subs && (
-                      <>
-                        <ListItemButton
-                          onClick={() => {
-                            item.open = !item.open
-
-                            setItmeList([...itemList])
-                          }}
-                        >
-                          {item.open ? <ExpandLess /> : <ExpandMore />}
-                        </ListItemButton>
-                      </>
-                    )}
-                  </ListItemButton>
+              <ListItem key={index} disablePadding sx={{ display: 'block' }}>
+                <ListItemButton
+                  sx={{
+                    minHeight: 48,
+                    justifyContent: open ? 'initial' : 'center',
+                    px: 2.5,
+                  }}
+                  onClick={() => {
+                    navigate(item.link)
+                  }}
+                  selected={
+                    item.link ===
+                    (location.pathname === '/'
+                      ? '/medicalrecord'
+                      : location.pathname)
+                  }
+                >
+                  {item.icon && (
+                    <ListItemIcon
+                      sx={{
+                        minWidth: 0,
+                        mr: open ? 3 : 'auto',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      {item.icon}
+                    </ListItemIcon>
+                  )}
+                  <ListItemText
+                    primary={item.displayName}
+                    sx={{ opacity: open ? 1 : 0 }}
+                  />
 
                   {item.subs && (
-                    <Collapse in={item.open} timeout="auto" unmountOnExit>
-                      {menuElement(item.subs)}
-                    </Collapse>
+                    <>
+                      <ListItemButton
+                        onClick={() => {
+                          item.open = !item.open
+
+                          setItmeList([...itemList])
+                        }}
+                      >
+                        {item.open ? <ExpandLess /> : <ExpandMore />}
+                      </ListItemButton>
+                    </>
                   )}
-                </ListItem>
-              </>
+                </ListItemButton>
+
+                {item.subs && (
+                  <Collapse in={item.open} timeout="auto" unmountOnExit>
+                    {menuElement(item.subs)}
+                  </Collapse>
+                )}
+              </ListItem>
             )
           })}
         </List>
@@ -257,7 +255,6 @@ const MainLayout = () => {
           </DrawerHeader>
           <Divider />
           {menuElement(itemList)}
-          <Divider />
         </Drawer>
         <Box
           sx={{
@@ -270,6 +267,7 @@ const MainLayout = () => {
               width: '100%',
               borderRadius: 0,
               borderBottom: 'solid 1px #EAEAEA',
+              // height: 60,
             }}
             position="sticky"
             elevation={0}
@@ -286,10 +284,16 @@ const MainLayout = () => {
           <Box
             component="main"
             display="flex"
+            flexDirection={'row'}
             justifyContent="center"
+            alignItems={'center'}
             sx={{ p: 2 }}
+            minHeight={`calc(100vh - 56px)`}
+            minWidth={`calc(100vw - ${drawerWidth})`}
           >
-            <Outlet />
+            <Box sx={{ width: '100%' }}>
+              <Outlet />
+            </Box>
           </Box>
         </Box>
       </ThemeProvider>

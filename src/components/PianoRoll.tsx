@@ -1,10 +1,9 @@
 import { NoteEvent, NoteEventField } from 'types/midi'
 import * as THREE from 'three'
 
-import { Canvas, useFrame, ThreeElements } from '@react-three/fiber'
-import { Frustum } from 'three'
+import { Canvas, useFrame, ThreeElements, Vector3 } from '@react-three/fiber'
 
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { PitchIndex } from 'constants/notes'
 
 interface PianoRollProps {
@@ -97,13 +96,50 @@ class KeyModel {
   }
 }
 
+const WHITEKEY_WIDTH = 0.2
+const WHITEKEY_HEIGHT = 1
+const BLACKKEY_WIDTH = 0.1
+const BLACKKEY_HEIGHT = 0.7
+
 const VirtualPiano = (props: ThreeElements['mesh']) => {
-  const [keys] = useState<KeyModel[]>(
-    Array(KEY_NUM).map((_, idx) => {
-      return new KeyModel(START_MIDI_KEY + idx)
-    })
+  const [keys, setKeys] = useState<KeyModel[]>(
+    Array(KEY_NUM)
+      .fill('')
+      .map((_, idx) => new KeyModel(START_MIDI_KEY + idx))
   )
-  return <mesh {...props}></mesh>
+
+  useEffect(() => {
+    keys.forEach((key) => console.log(key))
+  }, [keys])
+
+  return (
+    <>
+      {keys.map((key: KeyModel, idx) => {
+        const args: [
+          width?: number,
+          height?: number,
+          depth?: number,
+          widthSegments?: number,
+          heightSegments?: number,
+          depthSegments?: number
+        ] = key.isWhiteKey()
+          ? [WHITEKEY_WIDTH, WHITEKEY_HEIGHT, 0.05]
+          : [BLACKKEY_WIDTH, BLACKKEY_HEIGHT, 0.05]
+
+        const position: Vector3 = key.isWhiteKey()
+          ? [-5 + idx * 0.2, 0, 0]
+          : [-5 + idx * 0.1, 0, 1]
+        return (
+          <mesh position={position}>
+            <boxGeometry args={args} />
+            <meshStandardMaterial
+              color={key.isWhiteKey() ? 'white' : 'black'}
+            />
+          </mesh>
+        )
+      })}{' '}
+    </>
+  )
 }
 
 const Y_LENGTH_PER_SECOND = 1
@@ -112,44 +148,29 @@ const PianoRoll = (props: PianoRollProps) => {
   const ref = useRef<THREE.Group>(null!)
   const NoteRender = () => {
     useFrame((state, delta) => {
-      ref.current.position.y += -3 * delta
+      // ref.current.position.y += -3 * delta
     })
     return (
-      <group ref={ref}>
-        {props.noteEvents.map((note: NoteEvent, idx) => {
-          const startTime = note[NoteEventField.start_s]
-          const pitch = note[NoteEventField.pitch]
-          return (
-            <RollBox
-              position={[
-                -5 + (pitch - START_MIDI_KEY) * 0.15,
-                startTime * 2,
-                0.03,
-              ]}
-              frustumCulled
-            />
-          )
-        })}
-      </group>
+      <>
+        <group ref={ref}>
+          {props.noteEvents.map((note: NoteEvent, idx) => {
+            const startTime = note[NoteEventField.start_s]
+            const pitch = note[NoteEventField.pitch]
+            return (
+              <RollBox
+                position={[
+                  -5 + (pitch - START_MIDI_KEY) * 0.15,
+                  startTime * 2,
+                  0.03,
+                ]}
+                frustumCulled
+              />
+            )
+          })}
+        </group>
+      </>
     )
   }
-
-  // useFrame((state) => {
-  //   // Update the frustum with the camera's projection and view matrices
-  //   frustum.setFromProjectionMatrix(
-  //     state.camera.projectionMatrix.multiply(state.camera.matrixWorldInverse)
-  //   )
-
-  //   // Perform frustum culling for each object you want to check
-  //   // Example: objects is an array of Three.js objects you want to cull
-  //   noteRender.forEach((object) => {
-  //     if (frustum.intersectsObject(object)) {
-  //       // Object is visible, perform rendering or update logic here
-  //     } else {
-  //       // Object is not visible, you can skip rendering or apply optimizations
-  //     }
-  //   })
-  // })
 
   return (
     <div style={{ width: '100%', justifyContent: 'center', display: 'flex' }}>
@@ -164,9 +185,11 @@ const PianoRoll = (props: PianoRollProps) => {
           <ambientLight />
           <pointLight position={[10, 10, 10]} />
           <group scale={[1, 1, 1]} rotation={[-0.6, 0, 0]}>
-            <BackBoard position={[0, 0, 0]} />
+            {/* <BackBoard position={[0, 0, 0]} /> */}
             {/* {noteRender} */}
             <NoteRender />
+
+            <VirtualPiano scale={[3, 3, 3]} position={[1, 2, 0]} />
           </group>
         </Canvas>
       </div>

@@ -1,8 +1,10 @@
-import { NoteEvent } from 'types/midi'
+import { NoteEvent, NoteEventField } from 'types/midi'
 import * as THREE from 'three'
 
 import { Canvas, useFrame, ThreeElements } from '@react-three/fiber'
-import { useRef, useState } from 'react'
+import { Frustum } from 'three'
+
+import { useMemo, useRef, useState } from 'react'
 import { PitchIndex } from 'constants/notes'
 
 interface PianoRollProps {
@@ -10,11 +12,9 @@ interface PianoRollProps {
 }
 
 function RollBox(props: ThreeElements['mesh']) {
-  const ref = useRef<THREE.Mesh>(null!)
-  //   useFrame((state, delta) => (ref.current.rotation.x += delta))
   return (
     <>
-      <mesh {...props} ref={ref}>
+      <mesh {...props}>
         <boxGeometry args={[0.3, 1, 0.05]} />
         <meshStandardMaterial color={'black'} />
       </mesh>
@@ -25,7 +25,7 @@ function RollBox(props: ThreeElements['mesh']) {
 const BackBoard = (props: ThreeElements['mesh']) => {
   return (
     <mesh {...props}>
-      <boxGeometry args={[10, 10.3, 0.1]} />
+      <boxGeometry args={[10, 10, 0.1]} />
       <meshStandardMaterial color={'orange'} />
     </mesh>
   )
@@ -103,25 +103,70 @@ const VirtualPiano = (props: ThreeElements['mesh']) => {
       return new KeyModel(START_MIDI_KEY + idx)
     })
   )
-  debugger
   return <mesh {...props}></mesh>
 }
 
+const Y_LENGTH_PER_SECOND = 1
+
 const PianoRoll = (props: PianoRollProps) => {
+  const ref = useRef<THREE.Group>(null!)
+  const NoteRender = () => {
+    useFrame((state, delta) => {
+      ref.current.position.y += -3 * delta
+    })
+    return (
+      <group ref={ref}>
+        {props.noteEvents.map((note: NoteEvent, idx) => {
+          const startTime = note[NoteEventField.start_s]
+          const pitch = note[NoteEventField.pitch]
+          return (
+            <RollBox
+              position={[
+                -5 + (pitch - START_MIDI_KEY) * 0.15,
+                startTime * 2,
+                0.03,
+              ]}
+              frustumCulled
+            />
+          )
+        })}
+      </group>
+    )
+  }
+
+  // useFrame((state) => {
+  //   // Update the frustum with the camera's projection and view matrices
+  //   frustum.setFromProjectionMatrix(
+  //     state.camera.projectionMatrix.multiply(state.camera.matrixWorldInverse)
+  //   )
+
+  //   // Perform frustum culling for each object you want to check
+  //   // Example: objects is an array of Three.js objects you want to cull
+  //   noteRender.forEach((object) => {
+  //     if (frustum.intersectsObject(object)) {
+  //       // Object is visible, perform rendering or update logic here
+  //     } else {
+  //       // Object is not visible, you can skip rendering or apply optimizations
+  //     }
+  //   })
+  // })
+
   return (
     <div style={{ width: '100%', justifyContent: 'center', display: 'flex' }}>
       <div
         style={{
-          width: '30vw',
-          height: '80vh',
+          width: '70vw',
+          height: 'calc(75vh)',
+          // background: 'red',
         }}
       >
         <Canvas>
           <ambientLight />
           <pointLight position={[10, 10, 10]} />
-          <group rotation={[-0.2, 0, 0]}>
+          <group scale={[1, 1, 1]} rotation={[-0.6, 0, 0]}>
             <BackBoard position={[0, 0, 0]} />
-            <RollBox position={[0, 0, 0.3]} />
+            {/* {noteRender} */}
+            <NoteRender />
           </group>
         </Canvas>
       </div>

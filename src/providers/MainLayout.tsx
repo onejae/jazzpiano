@@ -288,7 +288,7 @@ const MainLayout = () => {
             justifyContent="center"
             alignItems={'center'}
             sx={{ p: 2 }}
-            minHeight={`calc(100vh - 56px)`}
+            minHeight={`calc(100vh - 66px)`}
             minWidth={`calc(100vw - ${drawerWidth})`}
           >
             <Box sx={{ width: '100%' }}>

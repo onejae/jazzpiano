@@ -22,6 +22,7 @@ const YoutubePractice = () => {
       alert(error)
     }
   }, [youtubeLink])
+
   return (
     <Box display="flex" flexDirection={'column'}>
       <Box display="flex" justifyContent={'center'} padding={2}>
@@ -39,8 +40,8 @@ const YoutubePractice = () => {
           }}
         />
       </Box>
-      <Box>
-        <PianoRoll noteEvents={[]} />
+      <Box flexGrow={1}>
+        <PianoRoll noteEvents={noteEvents || []} />
       </Box>
     </Box>
   )

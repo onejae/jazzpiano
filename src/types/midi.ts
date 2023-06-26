@@ -1,8 +1,6 @@
-export enum NoteEventField {
-  start_s = 0,
-  end_s = 1,
-  pitch = 2,
-  velocity = 3,
-}
-
-export type NoteEvent = number[]
+export type NoteEvent = [
+  start_s: number,
+  end_s: number,
+  pitch: number,
+  velocity?: number
+]

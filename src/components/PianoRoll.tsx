@@ -1,16 +1,19 @@
-import { NoteEvent, NoteEventField } from 'types/midi'
 import * as THREE from 'three'
+import { NoteEvent } from 'types/midi'
 
-import { Canvas, useFrame, ThreeElements, Vector3 } from '@react-three/fiber'
+import { Canvas, ThreeElements, Vector3, useFrame } from '@react-three/fiber'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Physics } from '@react-three/rapier'
 import { PitchIndex } from 'constants/notes'
+import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react'
+
+import { Vector3 as _Vector3, Ray, Raycaster } from 'three'
 
 interface PianoRollProps {
   noteEvents: NoteEvent[]
 }
 
-function RollBox(props: ThreeElements['mesh']) {
+function RollEvent(props: ThreeElements['mesh']) {
   return (
     <>
       <mesh {...props}>
@@ -103,6 +106,7 @@ const WHITEKEY_HEIGHT = 1.3
 const BLACKKEY_WIDTH = 0.2
 const BLACKKEY_HEIGHT = 0.9
 const PADDING_X = 0.03
+const BUFFER_SECONDS_FOR_CANDIDATES = 0.5
 
 interface KeyRenderSpaceType {
   x: number
@@ -111,6 +115,7 @@ interface KeyRenderSpaceType {
   w: number
   h: number
   d: number
+  color: string
   name: string
 }
 
@@ -137,18 +142,44 @@ for (let lastX = START_X, i = 0; i < keys.length; i++) {
     h: h,
     d: d,
     name: key.noteName,
+    color: key.isWhiteKey() ? 'white' : 'black',
   }
 
   lastX = lastX + (key.isWhiteKey() ? WHITEKEY_WIDTH + PADDING_X : 0)
 }
 
+// const rayCaster = new Raycaster(new _Vector3(-15, 0, 0), new _Vector3(1, 0, 0))
+
 const VirtualPiano = (props: ThreeElements['mesh']) => {
+  // const [ray, setRay] = useState(null)
+
+  // useEffect(() => {
+  //   if (!ray) return
+  //   const intersect = ray.intersectObject(box)
+  //   console.log(intersect)
+  // }, [ray])
+
   return (
     <group position={props.position}>
+      <mesh position={[0, WHITEKEY_HEIGHT * 0.5, 0]}>
+        {/* <boxGeometry args={[20, 0.0, 1]} /> */}
+      </mesh>
+      {/* <raycaster
+        ref={setRay}
+        // ray={{
+        //   origin: new _Vector3(-3, 0, 0),
+        //   direction: new _Vector3(1, 0, 0),
+        // }}
+        ray={new Ray(new _Vector3(-3, 0, 0), new _Vector3(1, 0, 0))}
+      ></raycaster> */}
       {keys.map((key: KeyModel, idx) => {
         const renderSpace = KeyRenderSpace[key.midiNumber]
         return (
-          <mesh position={[renderSpace.x, renderSpace.y, renderSpace.z]}>
+          <mesh
+            raycast={(a, b) => {}}
+            position={[renderSpace.x, renderSpace.y, renderSpace.z]}
+            key={idx}
+          >
             <boxGeometry args={[renderSpace.w, renderSpace.h, renderSpace.d]} />
             <meshStandardMaterial
               color={key.isWhiteKey() ? 'white' : 'black'}
@@ -161,32 +192,105 @@ const VirtualPiano = (props: ThreeElements['mesh']) => {
 }
 
 const PianoRoll = (props: PianoRollProps) => {
-  const ref = useRef<THREE.Group>(null!)
+  const ref = useRef<THREE.group>(null!)
+  const [currentTimeSeconds, setCurrentTimeSeconds] = useState<number>(0)
+  const refNoteBlocks = Array.from({ length: 10000 }, () =>
+    useRef<THREE.mesh>(null!)
+  )
+  const [checkFromIndex, setCheckFromIndex] = useState(0)
+
+  const noteBlocks = useMemo(() => {
+    return props.noteEvents.map((note: NoteEvent, idx) => {
+      const startTime = note[0]
+      const pitch = note[2]
+      const duration = note[1] - note[0]
+      const renderSpace = KeyRenderSpace[pitch]
+      return (
+        <mesh
+          position={[
+            renderSpace.x,
+            5 + startTime * Y_LENGTH_PER_SECOND,
+            renderSpace.z,
+          ]}
+          frustumCulled
+          ref={refNoteBlocks[idx]}
+        >
+          <boxGeometry
+            args={[
+              renderSpace.w,
+              duration * Y_LENGTH_PER_SECOND,
+              renderSpace.d,
+            ]}
+          />
+          <meshStandardMaterial color={renderSpace.color} />
+        </mesh>
+      )
+    })
+  }, [props.noteEvents, refNoteBlocks])
 
   const NoteRender = () => {
     useFrame((state, delta) => {
-      ref.current.position.y += -3 * delta
+      ref.current.translateY(-3 * delta)
+
+      // get check candidates
+      const candidates: THREE.mesh[] = []
+
+      for (let i = checkFromIndex; i <= props.noteEvents.length; i++) {
+        const noteEvent = props.noteEvents[i]
+
+        if (
+          noteEvent[0] >= currentTimeSeconds + BUFFER_SECONDS_FOR_CANDIDATES &&
+          noteEvent[1] + BUFFER_SECONDS_FOR_CANDIDATES <= currentTimeSeconds
+        ) {
+          candidates.push(refNoteBlocks[i])
+        }
+      }
+      //
+
+      // if (refNoteBlocks[1].current) {
+      //   const vector = new THREE.Vector3()
+      //   refNoteBlocks[1].current.getWorldPosition(vector)
+
+      //   console.log(vector)
+      // }
+
+      // const test = refNoteBlocks.map((ref) => {
+      // return ref.current
+      // })
+
+      // if (refNoteBlocks.length && refNoteBlocks[0].current) {
+      //   const rayCaster = new Raycaster()
+      //   rayCaster.set(new _Vector3(-50, -3, -2), new _Vector3(1, 0, 0))
+      //   const a = rayCaster.intersectObjects(test)
+
+      //   if (a.length) {
+      //     a.forEach((block) => {
+      //       block.object.material.color.set(0xff0000)
+      //     })
+      //   }
+      // }
     })
 
-    return (
-      <group ref={ref}>
-        {props.noteEvents.map((note: NoteEvent, idx) => {
-          const startTime = note[NoteEventField.start_s]
-          const pitch = note[NoteEventField.pitch]
-          return (
-            <RollBox
-              position={[
-                -5 + (pitch - START_MIDI_KEY) * 0.15,
-                startTime * 2,
-                0.03,
-              ]}
-              frustumCulled
-            />
-          )
-        })}
-      </group>
-    )
+    return <group ref={ref}>{noteBlocks}</group>
   }
+
+  const lineGeometry = new THREE.BufferGeometry().setFromPoints([
+    new _Vector3(0, 0, 10),
+    new _Vector3(0, 0, -1),
+  ])
+
+  const ref2 = useRef<THREE.group>(null!)
+
+  useEffect(() => {
+    console.log('------------------')
+
+    const vector = new THREE.Vector3()
+
+    if (ref2.current) {
+      ref2.current.getWorldPosition(vector)
+      console.log(vector)
+    }
+  }, [ref2.current])
 
   return (
     <div style={{ width: '100%', justifyContent: 'center', display: 'flex' }}>
@@ -205,14 +309,22 @@ const PianoRoll = (props: PianoRollProps) => {
             far: 100,
           }}
         >
-          <ambientLight position={[10, 0, 0]} intensity={0.3} />
-          <pointLight position={[-3, 0, 300]} intensity={3.3} />
+          <Suspense>
+            <Physics gravity={[0, 0, 0]} interpolate={false} colliders={false}>
+              <ambientLight position={[10, 0, 0]} intensity={0.3} />
+              <pointLight position={[-3, 0, 300]} intensity={3.3} />
 
-          <group scale={[1, 1, 1]} rotation={[-0.35, 0, 0]}>
-            {/* <BackBoard position={[0, 0, -0.1]} /> */}
-            <NoteRender />
-            <VirtualPiano scale={[3, 3, 3]} position={[-0.3, -4.2, -2]} />
-          </group>
+              <group
+                scale={[1, 1, 1]}
+                rotation={[-0.0, 0, 0]}
+                position={[0, -4.5, 0]}
+                ref={ref2}
+              >
+                <NoteRender />
+                <VirtualPiano />
+              </group>
+            </Physics>
+          </Suspense>
         </Canvas>
       </div>
     </div>

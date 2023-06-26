@@ -15,7 +15,14 @@ const YoutubePractice = () => {
       const response = await getMidiFromYoutubeLink({ link: youtubeLink })
 
       if (response.note_events) {
-        setNoteEvents(response.note_events)
+        // just for debugging
+        const noteEventsSorted = response.note_events.sort((a, b) => {
+          if (a[0] > b[0]) return 1
+          else if (a[0] === b[0]) return 0
+          else return -1
+        })
+
+        setNoteEvents(noteEventsSorted)
         setRollState('PLAYING')
       }
     } catch (error) {

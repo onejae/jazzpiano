@@ -130,8 +130,8 @@ for (let lastX = START_X, i = 0; i < keys.length; i++) {
     : [BLACKKEY_WIDTH, BLACKKEY_HEIGHT, 0.15]
 
   const position: Vector3 = key.isWhiteKey()
-    ? [lastX, 0, -0.1]
-    : [lastX - BLACKKEY_WIDTH * 0.8, 0.2, 0.0001]
+    ? [lastX, -WHITEKEY_HEIGHT * 0.5, -0.1]
+    : [lastX - BLACKKEY_WIDTH * 0.8, -BLACKKEY_HEIGHT * 0.5, 0.0001]
 
   KeyRenderSpace[key.midiNumber] = {
     x: position[0],
@@ -174,21 +174,19 @@ const VirtualPiano = (props: ThreeElements['mesh']) => {
 interface RenderInfo {
   timer: number
   indexFrom: number
-  blockRail: { [key: number]: NoteEvent[] }
+  blockRail: { [key: string]: { noteEvent: NoteEvent; idx: number }[] }
 }
 
 const PianoRoll = (props: PianoRollProps) => {
-  const ref = useRef<THREE.group>(null!)
+  const ref = useRef<THREE.Group>(null!)
   const refNoteBlocks = Array.from({ length: 10000 }, () =>
-    useRef<THREE.mesh>(null!)
+    useRef<THREE.Mesh>(null!)
   )
   const renderInfo = useRef<RenderInfo>({
     timer: 0,
     indexFrom: 0,
     blockRail: {},
   })
-  const [checkFromIndex, setCheckFromIndex] = useState(0)
-
   const noteBlocks = useMemo(() => {
     return props.noteEvents.map((note: NoteEvent, idx) => {
       const startTime = note[0]
@@ -227,23 +225,43 @@ const PianoRoll = (props: PianoRollProps) => {
       if (renderInfo.current) {
         renderInfo.current.blockRail[pitch] =
           renderInfo.current.blockRail[pitch] || []
-        renderInfo.current.blockRail[pitch].push(note)
+        renderInfo.current.blockRail[pitch].push({
+          noteEvent: note,
+          idx: idx,
+        })
       }
     })
-  }, [props.noteEvents])
+  }, [props.noteEvents, refNoteBlocks])
 
   const NoteRender = () => {
     useFrame((state, delta) => {
       if (!renderInfo.current) return
-      ref.current.translateY(delta * -Y_LENGTH_PER_SECOND)
+      // ref.current.translateY(delta * -Y_LENGTH_PER_SECOND)
+      ref.current.position.setY(-Y_LENGTH_PER_SECOND * renderInfo.current.timer)
 
-      for (let i = checkFromIndex; i < props.noteEvents.length; i++) {
-        const noteEvent = props.noteEvents[i]
+      const keys = Object.keys(renderInfo.current.blockRail)
 
-        if (noteEvent[0] <= renderInfo.current.timer) {
-          refNoteBlocks[i].current.material.color.set(0xff0000)
+      keys.forEach((key) => {
+        const block = renderInfo.current.blockRail[key][0]
+
+        if (block === undefined) {
+          return
         }
-      }
+
+        if (block.noteEvent[0] <= renderInfo.current.timer) {
+          refNoteBlocks[block.idx].current.material.color.set(0xff0000)
+        }
+
+        if (block.noteEvent[1] <= renderInfo.current.timer) {
+          renderInfo.current.blockRail[key].shift()
+        }
+      }, [])
+      // for (let i = checkFromIndex; i < props.noteEvents.length; i++) {
+      //   const noteEvent = props.noteEvents[i]
+
+      //   if (noteEvent[0] <= renderInfo.current.timer) {
+      //   }
+      // }
 
       renderInfo.current.timer += delta
     })
@@ -276,8 +294,8 @@ const PianoRoll = (props: PianoRollProps) => {
           camera={{
             position: [0, 0, 13],
             fov: 45,
-            near: 0.1,
-            far: 100,
+            near: 11.8,
+            far: 200,
           }}
         >
           <Suspense>
@@ -286,8 +304,8 @@ const PianoRoll = (props: PianoRollProps) => {
 
             <group
               scale={[1, 1, 1]}
-              rotation={[-0.3, 0, 0]}
-              position={[0, -4.5, 0]}
+              rotation={[-1.5, 0, 0]}
+              position={[0, -3.5, 0]}
               ref={ref2}
             >
               <raycaster ray={ray} ref={rayRef} />

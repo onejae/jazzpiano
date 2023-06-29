@@ -163,7 +163,7 @@ const VirtualPiano = (props: ThreeElements['mesh']) => {
             <boxGeometry args={[renderSpace.w, renderSpace.h, renderSpace.d]} />
             <meshStandardMaterial
               color={key.isWhiteKey() ? 'white' : 'black'}
-            />
+            ></meshStandardMaterial>
           </mesh>
         )
       })}{' '}
@@ -211,7 +211,10 @@ const PianoRoll = (props: PianoRollProps) => {
               renderSpace.d,
             ]}
           />
-          <meshStandardMaterial color={renderSpace.color} />
+          <meshStandardMaterial
+            color={renderSpace.color}
+            clippingPlanes={[new THREE.Plane(new THREE.Vector3(0, 0, -1), 0.0)]}
+          />
         </mesh>
       )
 
@@ -291,10 +294,13 @@ const PianoRoll = (props: PianoRollProps) => {
         }}
       >
         <Canvas
+          onCreated={({ gl }) => {
+            gl.localClippingEnabled = true
+          }}
           camera={{
             position: [0, 0, 13],
             fov: 45,
-            near: 11.8,
+            near: 0.1,
             far: 200,
           }}
         >
@@ -304,7 +310,7 @@ const PianoRoll = (props: PianoRollProps) => {
 
             <group
               scale={[1, 1, 1]}
-              rotation={[-1.5, 0, 0]}
+              rotation={[-1.0, 0, 0]}
               position={[0, -3.5, 0]}
               ref={ref2}
             >

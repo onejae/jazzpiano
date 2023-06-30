@@ -22,7 +22,9 @@ const YoutubePractice = () => {
           else return -1
         })
 
-        setNoteEvents(noteEventsSorted)
+        const noteEventFiltered = noteEventsSorted.filter((v) => v[2] >= 40)
+
+        setNoteEvents(noteEventFiltered)
         setRollState('PLAYING')
       }
     } catch (error) {

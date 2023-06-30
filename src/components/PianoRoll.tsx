@@ -8,28 +8,17 @@ import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 
 import { Vector3 as _Vector3, Ray, Raycaster } from 'three'
 
+import { SplendidGrandPiano, Soundfont } from 'smplr'
+
+const context = new AudioContext()
+const pianoPlayer = new SplendidGrandPiano(context, { decayTime: 1.2 })
+
+pianoPlayer.loaded().then(() => {
+  console.log('--- piano is ready')
+})
+
 interface PianoRollProps {
   noteEvents: NoteEvent[]
-}
-
-function RollEvent(props: ThreeElements['mesh']) {
-  return (
-    <>
-      <mesh {...props}>
-        <boxGeometry args={[0.3, 1, 0.05]} />
-        <meshStandardMaterial color={'black'} />
-      </mesh>
-    </>
-  )
-}
-
-const BackBoard = (props: ThreeElements['mesh']) => {
-  return (
-    <mesh {...props}>
-      <boxGeometry args={[10, 10, 0.1]} />
-      <meshStandardMaterial color={'orange'} />
-    </mesh>
-  )
 }
 
 const KEY_NUM = 88
@@ -150,9 +139,7 @@ for (let lastX = START_X, i = 0; i < keys.length; i++) {
 const VirtualPiano = (props: ThreeElements['mesh']) => {
   return (
     <group position={props.position}>
-      <mesh position={[0, WHITEKEY_HEIGHT * 0.5, 0]}>
-        {/* <boxGeometry args={[20, 0.0, 1]} /> */}
-      </mesh>
+      <mesh position={[0, WHITEKEY_HEIGHT * 0.5, 0]}></mesh>
       {keys.map((key: KeyModel, idx) => {
         const renderSpace = KeyRenderSpace[key.midiNumber]
         return (
@@ -175,6 +162,7 @@ interface RenderInfo {
   timer: number
   indexFrom: number
   blockRail: { [key: string]: { noteEvent: NoteEvent; idx: number }[] }
+  status: 'INIT' | 'LOADED' | 'PLAYING'
 }
 
 const PianoRoll = (props: PianoRollProps) => {
@@ -186,6 +174,7 @@ const PianoRoll = (props: PianoRollProps) => {
     timer: 0,
     indexFrom: 0,
     blockRail: {},
+    status: 'INIT',
   })
   const noteBlocks = useMemo(() => {
     return props.noteEvents.map((note: NoteEvent, idx) => {
@@ -198,7 +187,8 @@ const PianoRoll = (props: PianoRollProps) => {
         <mesh
           position={[
             renderSpace.x,
-            startTime * Y_LENGTH_PER_SECOND,
+            startTime * Y_LENGTH_PER_SECOND +
+              duration * 0.5 * Y_LENGTH_PER_SECOND,
             renderSpace.z,
           ]}
           frustumCulled
@@ -213,7 +203,10 @@ const PianoRoll = (props: PianoRollProps) => {
           />
           <meshStandardMaterial
             color={renderSpace.color}
-            clippingPlanes={[new THREE.Plane(new THREE.Vector3(0, 0, -1), 0.0)]}
+            clippingPlanes={[
+              new THREE.Plane(new THREE.Vector3(0, 1, -1), 1.73),
+            ]}
+            side={THREE.FrontSide}
           />
         </mesh>
       )
@@ -225,6 +218,7 @@ const PianoRoll = (props: PianoRollProps) => {
   useEffect(() => {
     props.noteEvents.forEach((note: NoteEvent, idx) => {
       const pitch = note[2]
+      note[4] = false
       if (renderInfo.current) {
         renderInfo.current.blockRail[pitch] =
           renderInfo.current.blockRail[pitch] || []
@@ -234,12 +228,13 @@ const PianoRoll = (props: PianoRollProps) => {
         })
       }
     })
+
+    if (props.noteEvents.length) renderInfo.current.status = 'LOADED'
   }, [props.noteEvents, refNoteBlocks])
 
   const NoteRender = () => {
     useFrame((state, delta) => {
-      if (!renderInfo.current) return
-      // ref.current.translateY(delta * -Y_LENGTH_PER_SECOND)
+      if (!renderInfo.current || renderInfo.current.status != 'LOADED') return
       ref.current.position.setY(-Y_LENGTH_PER_SECOND * renderInfo.current.timer)
 
       const keys = Object.keys(renderInfo.current.blockRail)
@@ -253,36 +248,27 @@ const PianoRoll = (props: PianoRollProps) => {
 
         if (block.noteEvent[0] <= renderInfo.current.timer) {
           refNoteBlocks[block.idx].current.material.color.set(0xff0000)
+
+          if (block.noteEvent[4] === false) {
+            pianoPlayer.start({
+              note: block.noteEvent[2],
+              velocity: block.noteEvent[3] * 127,
+              duration: block.noteEvent[1] - block.noteEvent[0],
+            })
+            block.noteEvent[4] = true
+          }
         }
 
         if (block.noteEvent[1] <= renderInfo.current.timer) {
           renderInfo.current.blockRail[key].shift()
         }
       }, [])
-      // for (let i = checkFromIndex; i < props.noteEvents.length; i++) {
-      //   const noteEvent = props.noteEvents[i]
-
-      //   if (noteEvent[0] <= renderInfo.current.timer) {
-      //   }
-      // }
 
       renderInfo.current.timer += delta
     })
 
     return <group ref={ref}>{noteBlocks}</group>
   }
-
-  const lineGeometry = new THREE.BufferGeometry().setFromPoints([
-    new _Vector3(0, 0, 10),
-    new _Vector3(0, 0, -1),
-  ])
-
-  const ref2 = useRef<THREE.group>(null!)
-
-  const rayVector = new _Vector3(-50, -3, 0)
-  // rayVector.applyAxisAngle(new _Vector3(1, 0, 0), -0.3)
-  const ray = new Ray(rayVector, new _Vector3(1, 0, 0))
-  const rayRef = useRef<THREE.Raycaster>(null!)
 
   return (
     <div style={{ width: '100%', justifyContent: 'center', display: 'flex' }}>
@@ -310,11 +296,9 @@ const PianoRoll = (props: PianoRollProps) => {
 
             <group
               scale={[1, 1, 1]}
-              rotation={[-1.0, 0, 0]}
+              rotation={[-0.1, 0, 0]}
               position={[0, -3.5, 0]}
-              ref={ref2}
             >
-              <raycaster ray={ray} ref={rayRef} />
               <NoteRender />
               <VirtualPiano />
             </group>

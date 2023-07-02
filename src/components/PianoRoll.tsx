@@ -1,10 +1,23 @@
 import * as THREE from 'three'
 import { NoteEvent } from 'types/midi'
 
-import { Canvas, ThreeElements, Vector3, useFrame } from '@react-three/fiber'
+import {
+  Canvas,
+  ThreeElements,
+  Vector3,
+  useFrame,
+  invalidate,
+} from '@react-three/fiber'
 
 import { PitchIndex } from 'constants/notes'
-import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import React, {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 
 import { Vector3 as _Vector3, Ray, Raycaster } from 'three'
 
@@ -28,11 +41,13 @@ class KeyModel {
   midiNumber: number
   octave: number
   noteName: string
+  pressed: boolean
 
   constructor(midiNumber: number) {
     this.midiNumber = midiNumber
     this.noteName = KeyModel.getNoteFromMidiNumber(midiNumber)
     this.octave = KeyModel.getOctaveFromMidiNumber(midiNumber)
+    this.pressed = false
   }
 
   static getOctaveFromMidiNumber = (midiNumber: number): number => {
@@ -136,7 +151,54 @@ for (let lastX = START_X, i = 0; i < keys.length; i++) {
   lastX = lastX + (key.isWhiteKey() ? WHITEKEY_WIDTH + PADDING_X : 0)
 }
 
+const KeyMidiTable = {
+  z: 36,
+  s: 37,
+  x: 38,
+  d: 39,
+  c: 40,
+  v: 41,
+  g: 42,
+  b: 43,
+  h: 44,
+  n: 45,
+  j: 46,
+  m: 47,
+}
+
 const VirtualPiano = (props: ThreeElements['mesh']) => {
+  const ref = useRef<THREE.mesh>()
+
+  const handleKeyDown = useCallback((ev: KeyboardEvent) => {
+    const pressedKey = keys.find((v) => v.midiNumber === KeyMidiTable[ev.key])
+
+    if (pressedKey) {
+      pressedKey.pressed = true
+
+      ref.current.material.color.set('green')
+    }
+  }, [])
+
+  const handleKeyUp = useCallback((ev: KeyboardEvent) => {
+    const pressedKey = keys.find((v) => v.midiNumber === KeyMidiTable[ev.key])
+
+    if (pressedKey) {
+      pressedKey.pressed = false
+      ref.current.material.color.set('white')
+    }
+  }, [])
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown)
+    document.addEventListener('keyup', handleKeyUp)
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+
+      document.removeEventListener('keyup', handleKeyUp)
+    }
+  }, [handleKeyDown, handleKeyUp])
+
   return (
     <group position={props.position}>
       <mesh position={[0, WHITEKEY_HEIGHT * 0.5, 0]}></mesh>
@@ -146,10 +208,13 @@ const VirtualPiano = (props: ThreeElements['mesh']) => {
           <mesh
             position={[renderSpace.x, renderSpace.y, renderSpace.z]}
             key={idx}
+            ref={ref}
           >
             <boxGeometry args={[renderSpace.w, renderSpace.h, renderSpace.d]} />
             <meshStandardMaterial
-              color={key.isWhiteKey() ? 'white' : 'black'}
+              color={
+                key.pressed ? 'green' : key.isWhiteKey() ? 'white' : 'black'
+              }
             ></meshStandardMaterial>
           </mesh>
         )

@@ -151,7 +151,7 @@ for (let lastX = START_X, i = 0; i < keys.length; i++) {
   lastX = lastX + (key.isWhiteKey() ? WHITEKEY_WIDTH + PADDING_X : 0)
 }
 
-const KeyMidiTable = {
+const KeyMidiTable: { [key: string]: number } = {
   z: 36,
   s: 37,
   x: 38,
@@ -167,26 +167,40 @@ const KeyMidiTable = {
 }
 
 const VirtualPiano = (props: ThreeElements['mesh']) => {
-  const ref = useRef<THREE.mesh>()
+  const refPianoKeys = Array.from({ length: KEY_NUM }, () =>
+    useRef<THREE.Mesh>(null!)
+  )
 
-  const handleKeyDown = useCallback((ev: KeyboardEvent) => {
-    const pressedKey = keys.find((v) => v.midiNumber === KeyMidiTable[ev.key])
+  const handleKeyDown = useCallback(
+    (ev: KeyboardEvent) => {
+      const midiNumber = KeyMidiTable[ev.key]
+      const pressedKey = keys.find((v) => v.midiNumber === midiNumber)
 
-    if (pressedKey) {
-      pressedKey.pressed = true
+      if (pressedKey) {
+        pressedKey.pressed = true
 
-      ref.current.material.color.set('green')
-    }
-  }, [])
+        refPianoKeys[midiNumber - START_MIDI_KEY].current.material.color.set(
+          'green'
+        )
+      }
+    },
+    [refPianoKeys]
+  )
 
-  const handleKeyUp = useCallback((ev: KeyboardEvent) => {
-    const pressedKey = keys.find((v) => v.midiNumber === KeyMidiTable[ev.key])
+  const handleKeyUp = useCallback(
+    (ev: KeyboardEvent) => {
+      const midiNumber = KeyMidiTable[ev.key]
+      const pressedKey = keys.find((v) => v.midiNumber === midiNumber)
 
-    if (pressedKey) {
-      pressedKey.pressed = false
-      ref.current.material.color.set('white')
-    }
-  }, [])
+      if (pressedKey) {
+        pressedKey.pressed = false
+        refPianoKeys[midiNumber - START_MIDI_KEY].current.material.color.set(
+          keys[midiNumber - START_MIDI_KEY].isWhiteKey() ? 'white' : 'black'
+        )
+      }
+    },
+    [refPianoKeys]
+  )
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown)
@@ -208,13 +222,11 @@ const VirtualPiano = (props: ThreeElements['mesh']) => {
           <mesh
             position={[renderSpace.x, renderSpace.y, renderSpace.z]}
             key={idx}
-            ref={ref}
+            ref={refPianoKeys[idx]}
           >
             <boxGeometry args={[renderSpace.w, renderSpace.h, renderSpace.d]} />
             <meshStandardMaterial
-              color={
-                key.pressed ? 'green' : key.isWhiteKey() ? 'white' : 'black'
-              }
+              color={key.isWhiteKey() ? 'white' : 'black'}
             ></meshStandardMaterial>
           </mesh>
         )

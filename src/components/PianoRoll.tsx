@@ -164,6 +164,18 @@ const KeyMidiTable: { [key: string]: number } = {
   n: 45,
   j: 46,
   m: 47,
+  q: 48,
+  '2': 49,
+  w: 50,
+  '3': 51,
+  e: 52,
+  r: 53,
+  '5': 54,
+  t: 55,
+  '6': 56,
+  y: 57,
+  '7': 58,
+  u: 59,
 }
 
 const VirtualPiano = (props: ThreeElements['mesh']) => {
@@ -180,7 +192,7 @@ const VirtualPiano = (props: ThreeElements['mesh']) => {
         pressedKey.pressed = true
 
         refPianoKeys[midiNumber - START_MIDI_KEY].current.material.color.set(
-          'green'
+          'blue'
         )
       }
     },

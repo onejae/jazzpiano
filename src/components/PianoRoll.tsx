@@ -329,6 +329,8 @@ const PianoRoll = (props: PianoRollProps) => {
       const keys = Object.keys(renderInfo.current.blockRail)
 
       keys.forEach((key) => {
+        if (renderInfo.current.blockRail[key].length === 0) return
+
         const block = renderInfo.current.blockRail[key][0]
 
         if (block === undefined) {

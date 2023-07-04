@@ -87,6 +87,9 @@ export const useVirtualPiano = () => {
     useRef<THREE.Mesh>(null!)
   )
 
+  const noteDown = useCallback(() => {}, [])
+  const noteUp = useCallback(() => {}, [])
+
   const handleKeyDown = useCallback(
     (ev: KeyboardEvent) => {
       const midiNumber = KeyMidiTable[ev.key]
@@ -127,11 +130,11 @@ export const useVirtualPiano = () => {
     [refPianoKeys]
   )
 
-  return [handleKeyDown, handleKeyUp, refPianoKeys]
+  return { handleKeyDown, handleKeyUp, refPianoKeys, noteDown, noteUp }
 }
 
 export const VirtualPiano = (props: ThreeElements['mesh']) => {
-  const [handleKeyDown, handleKeyUp, refPianoKeys] = useVirtualPiano()
+  const { handleKeyDown, handleKeyUp, refPianoKeys } = useVirtualPiano()
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown)
     document.addEventListener('keyup', handleKeyUp)

@@ -13,7 +13,11 @@ import React, {
 } from 'react'
 
 import { keyModels } from '@libs/midiControl'
-import { KeyRenderSpace, VirtualPiano } from '@components/VirtualPiano'
+import {
+  KeyRenderSpace,
+  VirtualPiano,
+  useVirtualPiano,
+} from '@components/VirtualPiano'
 
 interface PianoRollProps {
   noteEvents: NoteEvent[]
@@ -27,9 +31,10 @@ interface RenderInfo {
   status: 'INIT' | 'LOADED' | 'PLAYING'
 }
 
-type PracticeMode = 'step' | 'normal'
+type PracticeMode = 'step' | 'normal' | 'preview'
 
 const PianoRoll = (props: PianoRollProps) => {
+  const { noteUp, noteDown } = useVirtualPiano()
   const ref = useRef<THREE.Group>(null!)
   const refNoteBlocks = Array.from({ length: 10000 }, () =>
     useRef<THREE.Mesh>(null!)
@@ -117,14 +122,10 @@ const PianoRoll = (props: PianoRollProps) => {
           if (block.noteEvent[0] <= renderInfo.current.timer) {
             refNoteBlocks[block.idx].current.material.color.set(0xff0000)
 
-            // if (block.noteEvent[4] === false) {
-            //   pianoPlayer.start({
-            //     note: block.noteEvent[2],
-            //     velocity: block.noteEvent[3] || 0 * 127,
-            //     duration: block.noteEvent[1] - block.noteEvent[0],
-            //   })
-            //   block.noteEvent[4] = true
-            // }
+            if (block.noteEvent[4] === false) {
+              noteDown(block.noteEvent[2])
+              block.noteEvent[4] = true
+            }
           }
 
           if (block.noteEvent[1] <= renderInfo.current.timer) {

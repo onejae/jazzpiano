@@ -87,8 +87,15 @@ export const useVirtualPiano = () => {
     useRef<THREE.Mesh>(null!)
   )
 
-  const noteDown = useCallback(() => {}, [])
-  const noteUp = useCallback(() => {}, [])
+  const noteDown = useCallback((midiNumber: number, velocity = 80) => {
+    pianoPlayer.start({
+      note: midiNumber,
+      velocity: velocity,
+    })
+  }, [])
+  const noteUp = useCallback((midiNumber: number) => {
+    pianoPlayer.stop(midiNumber)
+  }, [])
 
   const handleKeyDown = useCallback(
     (ev: KeyboardEvent) => {
@@ -102,13 +109,10 @@ export const useVirtualPiano = () => {
           'blue'
         )
 
-        pianoPlayer.start({
-          note: pressedKey.midiNumber,
-          velocity: 80,
-        })
+        noteDown(pressedKey.midiNumber, 80)
       }
     },
-    [refPianoKeys]
+    [noteDown, refPianoKeys]
   )
 
   const handleKeyUp = useCallback(
@@ -124,10 +128,10 @@ export const useVirtualPiano = () => {
             : 'black'
         )
 
-        pianoPlayer.stop(pressedKey.midiNumber)
+        noteUp(pressedKey.midiNumber)
       }
     },
-    [refPianoKeys]
+    [noteUp, refPianoKeys]
   )
 
   return { handleKeyDown, handleKeyUp, refPianoKeys, noteDown, noteUp }

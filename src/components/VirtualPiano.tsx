@@ -82,7 +82,7 @@ for (let lastX = START_X, i = 0; i < keyModels.length; i++) {
   lastX = lastX + (key.isWhiteKey() ? WHITEKEY_WIDTH + PADDING_X : 0)
 }
 
-export const VirtualPiano = (props: ThreeElements['mesh']) => {
+export const useVirtualPiano = () => {
   const refPianoKeys = Array.from({ length: KEY_NUM }, () =>
     useRef<THREE.Mesh>(null!)
   )
@@ -127,6 +127,11 @@ export const VirtualPiano = (props: ThreeElements['mesh']) => {
     [refPianoKeys]
   )
 
+  return [handleKeyDown, handleKeyUp, refPianoKeys]
+}
+
+export const VirtualPiano = (props: ThreeElements['mesh']) => {
+  const [handleKeyDown, handleKeyUp, refPianoKeys] = useVirtualPiano()
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown)
     document.addEventListener('keyup', handleKeyUp)

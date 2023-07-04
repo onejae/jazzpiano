@@ -2,7 +2,7 @@ import { Box, Button, TextField } from '@mui/material'
 import React, { useCallback, useState } from 'react'
 import { getMidiFromYoutubeLink } from '@services/convertService'
 import { NoteEvent } from 'types/midi'
-import PianoRoll from '@components/PianoRoll'
+import PianoRoll from '@components/NoteRoll'
 
 type ROLLSTATE = 'INIT' | 'PLAYING'
 

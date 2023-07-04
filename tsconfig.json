@@ -25,7 +25,9 @@
       "@providers/*": ["providers/*"],
       "@pages/*": ["pages/*"],
       "@assets/*": ["assets/*"],
-      "@services/*": ["services/*"]
+      "@services/*": ["services/*"],
+      "@libs/*": ["libs/*"],
+      "@constants/*": ["constants/*"]
     }
   },
   "include": ["src"],

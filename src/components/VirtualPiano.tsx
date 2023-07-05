@@ -1,5 +1,5 @@
 import { ThreeElements, Vector3 } from '@react-three/fiber'
-import React, { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { KEY_NUM, START_MIDI_KEY } from '@constants/keys'
 import { KeyModel, keyModels } from '@libs/midiControl'
 import { SplendidGrandPiano } from 'smplr'
@@ -85,7 +85,7 @@ for (let lastX = START_X, i = 0; i < keyModels.length; i++) {
 
 export const useVirtualPiano = () => {
   const refPianoKeys = Array.from({ length: KEY_NUM }, () =>
-    useRef<THREE.Mesh>(null!)
+    useRef<THREE.MeshStandardMaterial>(null!)
   )
 
   const noteDown = useCallback((midiNumber: number, velocity = 80) => {
@@ -103,7 +103,7 @@ export const useVirtualPiano = () => {
 
 export const VirtualPiano = (props: ThreeElements['mesh']) => {
   const { refPianoKeys, noteDown, noteUp } = useVirtualPiano()
-  const { test, handleNoteDown, handleNoteUp } = useMidiControl()
+  const { handleNoteDown, handleNoteUp } = useMidiControl()
 
   const handleKeyDown = useCallback(
     (ev: KeyboardEvent) => {
@@ -113,9 +113,7 @@ export const VirtualPiano = (props: ThreeElements['mesh']) => {
       if (pressedKey && pressedKey.pressed === false) {
         pressedKey.pressed = true
 
-        refPianoKeys[midiNumber - START_MIDI_KEY].current.material.color.set(
-          'blue'
-        )
+        refPianoKeys[midiNumber - START_MIDI_KEY].current.color.set('blue')
 
         noteDown(pressedKey.midiNumber, 80)
 
@@ -124,7 +122,7 @@ export const VirtualPiano = (props: ThreeElements['mesh']) => {
         }
       }
     },
-    [noteDown, refPianoKeys]
+    [handleNoteDown, noteDown, refPianoKeys]
   )
 
   const handleKeyUp = useCallback(
@@ -134,7 +132,7 @@ export const VirtualPiano = (props: ThreeElements['mesh']) => {
 
       if (pressedKey) {
         pressedKey.pressed = false
-        refPianoKeys[midiNumber - START_MIDI_KEY].current.material.color.set(
+        refPianoKeys[midiNumber - START_MIDI_KEY].current.color.set(
           keyModels[midiNumber - START_MIDI_KEY].isWhiteKey()
             ? 'white'
             : 'black'
@@ -142,12 +140,12 @@ export const VirtualPiano = (props: ThreeElements['mesh']) => {
 
         noteUp(pressedKey.midiNumber)
 
-        // if (handleNoteUp) {
-        //   handleNoteUp(pressedKey.midiNumber)
-        // }
+        if (handleNoteUp) {
+          handleNoteUp(pressedKey.midiNumber)
+        }
       }
     },
-    [noteUp, refPianoKeys]
+    [handleNoteUp, noteUp, refPianoKeys]
   )
 
   useEffect(() => {
@@ -170,10 +168,10 @@ export const VirtualPiano = (props: ThreeElements['mesh']) => {
           <mesh
             position={[renderSpace.x, renderSpace.y, renderSpace.z]}
             key={idx}
-            ref={refPianoKeys[idx]}
           >
             <boxGeometry args={[renderSpace.w, renderSpace.h, renderSpace.d]} />
             <meshStandardMaterial
+              ref={refPianoKeys[idx]}
               color={key.isWhiteKey() ? 'white' : 'black'}
             ></meshStandardMaterial>
           </mesh>

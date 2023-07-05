@@ -3,7 +3,7 @@ import { NoteEvent } from 'types/midi'
 
 import { Canvas, useFrame } from '@react-three/fiber'
 
-import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 
 import {
   KeyRenderSpace,
@@ -30,10 +30,10 @@ const PianoRoll = (props: PianoRollProps) => {
   const { noteUp, noteDown } = useVirtualPiano()
   const ref = useRef<THREE.Group>(null!)
   const refNoteBlocks = Array.from({ length: 10000 }, () =>
-    useRef<THREE.Mesh>(null!)
+    useRef<THREE.MeshStandardMaterial>(null!)
   )
-  const [practiceMode, setPracticeMode] = useState<PracticeMode>('step')
-  const { setHandleNoteDown, handleNoteDown } = useMidiControl()
+  const [practiceMode] = useState<PracticeMode>('step')
+  const { setHandleNoteDown } = useMidiControl()
 
   const renderInfo = useRef<RenderInfo>({
     timer: 0,
@@ -43,7 +43,14 @@ const PianoRoll = (props: PianoRollProps) => {
   })
 
   useEffect(() => {
-    setHandleNoteDown(() => (m: number) => console.log(m))
+    setHandleNoteDown(() => (midiNumber: number) => {
+      if (renderInfo.current.blockRail[midiNumber].length === 0) return
+      const block = renderInfo.current.blockRail[midiNumber][0]
+
+      if (block.noteEvent[0] <= renderInfo.current.timer) {
+        renderInfo.current.blockRail[midiNumber].shift()
+      }
+    })
   }, [setHandleNoteDown])
 
   const noteBlocks = useMemo(() => {
@@ -62,7 +69,6 @@ const PianoRoll = (props: PianoRollProps) => {
             renderSpace.z,
           ]}
           frustumCulled
-          ref={refNoteBlocks[idx]}
         >
           <boxGeometry
             args={[
@@ -72,6 +78,7 @@ const PianoRoll = (props: PianoRollProps) => {
             ]}
           />
           <meshStandardMaterial
+            ref={refNoteBlocks[idx]}
             color={renderSpace.color}
             clippingPlanes={[
               new THREE.Plane(new THREE.Vector3(0, 1, -1), 1.73),
@@ -100,10 +107,10 @@ const PianoRoll = (props: PianoRollProps) => {
     })
 
     if (props.noteEvents.length) renderInfo.current.status = 'LOADED'
-  }, [props.noteEvents, refNoteBlocks])
+  }, [props.noteEvents])
 
   const NoteRender = () => {
-    useFrame((state, delta) => {
+    useFrame((_state, delta) => {
       if (!renderInfo.current || renderInfo.current.status != 'LOADED') return
 
       const keyNames = Object.keys(renderInfo.current.blockRail)
@@ -115,7 +122,7 @@ const PianoRoll = (props: PianoRollProps) => {
           const block = renderInfo.current.blockRail[keyName][0]
 
           if (block.noteEvent[0] <= renderInfo.current.timer) {
-            refNoteBlocks[block.idx].current.material.color.set(0xff0000)
+            refNoteBlocks[block.idx].current.color.set(0xff0000)
 
             if (block.noteEvent[4] === false) {
               noteDown(block.noteEvent[2])
@@ -141,12 +148,8 @@ const PianoRoll = (props: PianoRollProps) => {
           if (renderInfo.current.blockRail[keyName].length === 0) return
 
           const block = renderInfo.current.blockRail[keyName][0]
-          if (
-            block.noteEvent[0] <= renderInfo.current.timer
-            // && keyModelsByMidi[block.noteEvent[2]].pressed === false
-          ) {
+          if (block.noteEvent[0] <= renderInfo.current.timer) {
             notesToWait.push(block.noteEvent)
-            // renderInfo.current.blockRail[keyName].shift()
           }
         })
 
@@ -157,27 +160,6 @@ const PianoRoll = (props: PianoRollProps) => {
           )
           renderInfo.current.timer += delta
         }
-
-        // const notPressed = keyModels.reduce((acc: KeyModel[], cur) => {
-        //   if (cur.pressed === false) {
-        //     const isInWaitList = notesToWait.find(
-        //       (v) => v[2] === cur.midiNumber
-        //     )
-
-        //     if (isInWaitList) {
-        //       acc.push(cur)
-        //     }
-        //   }
-
-        //   return acc
-        // }, [])
-
-        // wait for all notes touched
-        // if (notPressed.length) {
-        //   console.log(notPressed)
-        // }
-
-        // move to the next notes
       }
     })
 

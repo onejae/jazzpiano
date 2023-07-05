@@ -5,7 +5,7 @@ import {
   Typography,
 } from '@mui/material'
 import axios from 'axios'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 enum LoadingState {
   INIT = 0,
@@ -66,11 +66,11 @@ const LoadingScreen = () => {
               top: 0,
               width: '100vw',
               height: '100vh',
-              backgroundColor: 'rgba(128, 128, 128, 0.2)',
+              background: 'rgba(128, 128, 128, 0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
           >
             <Box display="flex" flexDirection="column" alignItems="center">
               <CircularProgress />

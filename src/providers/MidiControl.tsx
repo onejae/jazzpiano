@@ -9,8 +9,8 @@ const useMidiControl = () => {
     ((midiNumber: number) => any) | undefined
   >(undefined)
 
+  console.log('--------------------dsu')
   return { handleNoteDown, setHandleNoteDown, handleNoteUp, setHandleNoteUp }
 }
-export const MidiControl = () => {
-  return <></>
-}
+
+export { useMidiControl }

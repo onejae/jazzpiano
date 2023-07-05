@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useRef } from 'react'
 import { KEY_NUM, START_MIDI_KEY } from '@constants/keys'
 import { KeyModel, keyModels } from '@libs/midiControl'
 import { SplendidGrandPiano } from 'smplr'
+// import { useMidiControl } from './MidiControl'
 
 const KeyMidiTable: { [key: string]: number } = {
   z: 48,
@@ -97,6 +98,13 @@ export const useVirtualPiano = () => {
     pianoPlayer.stop(midiNumber)
   }, [])
 
+  return { refPianoKeys, noteDown, noteUp }
+}
+
+export const VirtualPiano = (props: ThreeElements['mesh']) => {
+  const { refPianoKeys, noteDown, noteUp } = useVirtualPiano()
+  // const { handleNoteDown, handleNoteUp } = useMidiControl()
+
   const handleKeyDown = useCallback(
     (ev: KeyboardEvent) => {
       const midiNumber = KeyMidiTable[ev.key]
@@ -110,6 +118,10 @@ export const useVirtualPiano = () => {
         )
 
         noteDown(pressedKey.midiNumber, 80)
+
+        // if (handleNoteDown) {
+        //   handleNoteDown(pressedKey.midiNumber)
+        // }
       }
     },
     [noteDown, refPianoKeys]
@@ -129,16 +141,15 @@ export const useVirtualPiano = () => {
         )
 
         noteUp(pressedKey.midiNumber)
+
+        // if (handleNoteUp) {
+        //   handleNoteUp(pressedKey.midiNumber)
+        // }
       }
     },
     [noteUp, refPianoKeys]
   )
 
-  return { handleKeyDown, handleKeyUp, refPianoKeys, noteDown, noteUp }
-}
-
-export const VirtualPiano = (props: ThreeElements['mesh']) => {
-  const { handleKeyDown, handleKeyUp, refPianoKeys } = useVirtualPiano()
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown)
     document.addEventListener('keyup', handleKeyUp)

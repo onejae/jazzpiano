@@ -18,6 +18,7 @@ import {
   VirtualPiano,
   useVirtualPiano,
 } from '@components/VirtualPiano'
+import { useMidiControl } from '../providers/MidiControl'
 
 interface PianoRollProps {
   noteEvents: NoteEvent[]
@@ -40,6 +41,7 @@ const PianoRoll = (props: PianoRollProps) => {
     useRef<THREE.Mesh>(null!)
   )
   const [practiceMode, setPracticeMode] = useState<PracticeMode>('step')
+  const { setHandleNoteDown, setHandleNoteUp } = useMidiControl()
 
   const renderInfo = useRef<RenderInfo>({
     timer: 0,
@@ -47,6 +49,10 @@ const PianoRoll = (props: PianoRollProps) => {
     blockRail: {},
     status: 'INIT',
   })
+
+  useEffect(() => {
+    setHandleNoteDown((m: number) => console.log(m))
+  }, [setHandleNoteDown])
 
   const noteBlocks = useMemo(() => {
     return props.noteEvents.map((note: NoteEvent, idx) => {
@@ -88,7 +94,6 @@ const PianoRoll = (props: PianoRollProps) => {
   }, [props.noteEvents, refNoteBlocks])
 
   useEffect(() => {
-    // refVirtualPiano.current.
     props.noteEvents.forEach((note: NoteEvent, idx) => {
       const pitch = note[2]
       note[4] = false
@@ -127,6 +132,7 @@ const PianoRoll = (props: PianoRollProps) => {
           }
 
           if (block.noteEvent[1] <= renderInfo.current.timer) {
+            noteUp(block.noteEvent[2])
             renderInfo.current.blockRail[keyName].shift()
           }
         }, [])

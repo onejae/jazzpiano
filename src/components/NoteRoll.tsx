@@ -12,7 +12,7 @@ import React, {
   useState,
 } from 'react'
 
-import { keyModels } from '@libs/midiControl'
+import { KeyModel, keyModels, keyModelsByMidi } from '@libs/midiControl'
 import {
   KeyRenderSpace,
   VirtualPiano,
@@ -47,8 +47,6 @@ const PianoRoll = (props: PianoRollProps) => {
     blockRail: {},
     status: 'INIT',
   })
-
-  const handleNoteDown = useCallback((midiNumber: number) => {}, [])
 
   const noteBlocks = useMemo(() => {
     return props.noteEvents.map((note: NoteEvent, idx) => {
@@ -145,13 +143,42 @@ const PianoRoll = (props: PianoRollProps) => {
           if (renderInfo.current.blockRail[keyName].length === 0) return
 
           const block = renderInfo.current.blockRail[keyName][0]
-          if (block.noteEvent[0] <= renderInfo.current.timer) {
+          if (
+            block.noteEvent[0] <= renderInfo.current.timer
+            // && keyModelsByMidi[block.noteEvent[2]].pressed === false
+          ) {
             notesToWait.push(block.noteEvent)
+            // renderInfo.current.blockRail[keyName].shift()
           }
         })
 
+        // skip the empty spaces
+        if (notesToWait.length === 0) {
+          ref.current.position.setY(
+            -Y_LENGTH_PER_SECOND * renderInfo.current.timer
+          )
+          renderInfo.current.timer += delta
+        }
+
+        // const notPressed = keyModels.reduce((acc: KeyModel[], cur) => {
+        //   if (cur.pressed === false) {
+        //     const isInWaitList = notesToWait.find(
+        //       (v) => v[2] === cur.midiNumber
+        //     )
+
+        //     if (isInWaitList) {
+        //       acc.push(cur)
+        //     }
+        //   }
+
+        //   return acc
+        // }, [])
+
         // wait for all notes touched
-        const notPressed = keyModels.map((key) => {})
+        // if (notPressed.length) {
+        //   console.log(notPressed)
+        // }
+
         // move to the next notes
       }
     })

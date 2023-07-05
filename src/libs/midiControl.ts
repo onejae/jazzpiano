@@ -69,3 +69,9 @@ export class KeyModel {
 export const keyModels = Array.from({ length: KEY_NUM }).map(
   (_, idx) => new KeyModel(START_MIDI_KEY + idx)
 )
+
+export const keyModelsByMidi: { [midiNumber: number]: KeyModel } = {}
+
+keyModels.forEach((keyModel) => {
+  keyModelsByMidi[keyModel.midiNumber] = keyModel
+})

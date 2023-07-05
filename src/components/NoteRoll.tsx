@@ -3,16 +3,8 @@ import { NoteEvent } from 'types/midi'
 
 import { Canvas, useFrame } from '@react-three/fiber'
 
-import React, {
-  Suspense,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react'
+import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 
-import { KeyModel, keyModels, keyModelsByMidi } from '@libs/midiControl'
 import {
   KeyRenderSpace,
   VirtualPiano,

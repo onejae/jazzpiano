@@ -41,7 +41,7 @@ const PianoRoll = (props: PianoRollProps) => {
     useRef<THREE.Mesh>(null!)
   )
   const [practiceMode, setPracticeMode] = useState<PracticeMode>('step')
-  const { setHandleNoteDown, setHandleNoteUp } = useMidiControl()
+  const { setHandleNoteDown, handleNoteDown } = useMidiControl()
 
   const renderInfo = useRef<RenderInfo>({
     timer: 0,
@@ -51,7 +51,7 @@ const PianoRoll = (props: PianoRollProps) => {
   })
 
   useEffect(() => {
-    setHandleNoteDown((m: number) => console.log(m))
+    setHandleNoteDown(() => (m: number) => console.log(m))
   }, [setHandleNoteDown])
 
   const noteBlocks = useMemo(() => {

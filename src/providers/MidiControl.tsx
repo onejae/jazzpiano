@@ -1,16 +1,33 @@
-import { useState } from 'react'
+import React, { createContext, useContext, useState } from 'react'
+import { PropsWithChildren } from 'react'
+
+interface MidiControlContextType {
+  handleNoteDown: (midiNumber: number) => any
+  setHandleNoteDown: React.Dispatch<
+    React.SetStateAction<(midiNumber: number) => any>
+  >
+}
+const MidiControlContext = createContext<MidiControlContextType>(null)
 
 const useMidiControl = () => {
-  const [handleNoteDown, setHandleNoteDown] = useState<
-    ((midiNumber: number) => any) | undefined
-  >(undefined)
-
-  const [handleNoteUp, setHandleNoteUp] = useState<
-    ((midiNumber: number) => any) | undefined
-  >(undefined)
-
-  console.log('--------------------dsu')
-  return { handleNoteDown, setHandleNoteDown, handleNoteUp, setHandleNoteUp }
+  return useContext(MidiControlContext)
 }
 
-export { useMidiControl }
+const MidiControlProvider = (props: PropsWithChildren) => {
+  const [handleNoteDown, setHandleNoteDown] = useState<
+    (midiNumber: number) => any
+  >(() => () => {})
+
+  return (
+    <MidiControlContext.Provider
+      value={{
+        handleNoteDown: handleNoteDown,
+        setHandleNoteDown: setHandleNoteDown,
+      }}
+    >
+      {props.children}
+    </MidiControlContext.Provider>
+  )
+}
+
+export { useMidiControl, MidiControlProvider }

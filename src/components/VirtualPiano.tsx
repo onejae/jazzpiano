@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useRef } from 'react'
 import { KEY_NUM, START_MIDI_KEY } from '@constants/keys'
 import { KeyModel, keyModels } from '@libs/midiControl'
 import { SplendidGrandPiano } from 'smplr'
-// import { useMidiControl } from './MidiControl'
+import { useMidiControl } from '@providers/MidiControl'
 
 const KeyMidiTable: { [key: string]: number } = {
   z: 48,
@@ -103,7 +103,7 @@ export const useVirtualPiano = () => {
 
 export const VirtualPiano = (props: ThreeElements['mesh']) => {
   const { refPianoKeys, noteDown, noteUp } = useVirtualPiano()
-  // const { handleNoteDown, handleNoteUp } = useMidiControl()
+  const { test, handleNoteDown, handleNoteUp } = useMidiControl()
 
   const handleKeyDown = useCallback(
     (ev: KeyboardEvent) => {
@@ -119,9 +119,9 @@ export const VirtualPiano = (props: ThreeElements['mesh']) => {
 
         noteDown(pressedKey.midiNumber, 80)
 
-        // if (handleNoteDown) {
-        //   handleNoteDown(pressedKey.midiNumber)
-        // }
+        if (handleNoteDown) {
+          handleNoteDown(pressedKey.midiNumber)
+        }
       }
     },
     [noteDown, refPianoKeys]

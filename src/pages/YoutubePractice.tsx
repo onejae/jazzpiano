@@ -4,6 +4,7 @@ import { getMidiFromYoutubeLink } from '@services/convertService'
 import { NoteEvent } from 'types/midi'
 import PianoRoll from '@components/NoteRoll'
 import { MidiControlProvider } from '@providers/MidiControl'
+import { TransportProvider } from '@providers/TransportProvider'
 
 type ROLLSTATE = 'INIT' | 'PLAYING'
 
@@ -51,9 +52,11 @@ const YoutubePractice = () => {
         />
       </Box>
       <Box flexGrow={1}>
-        <MidiControlProvider>
-          <PianoRoll noteEvents={noteEvents || []} />
-        </MidiControlProvider>
+        <TransportProvider>
+          <MidiControlProvider>
+            <PianoRoll noteEvents={noteEvents || []} />
+          </MidiControlProvider>
+        </TransportProvider>
       </Box>
     </Box>
   )

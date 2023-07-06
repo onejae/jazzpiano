@@ -11,6 +11,8 @@ import {
   useVirtualPiano,
 } from '@components/VirtualPiano'
 import { useMidiControl } from '../providers/MidiControl'
+import { TransportPanel } from './TransportPanel'
+import { useTransport } from '@providers/TransportProvider'
 
 interface PianoRollProps {
   noteEvents: NoteEvent[]
@@ -34,6 +36,7 @@ const PianoRoll = (props: PianoRollProps) => {
   )
   const [practiceMode] = useState<PracticeMode>('step')
   const { setHandleNoteDown } = useMidiControl()
+  const { playingState } = useTransport()
 
   const renderInfo = useRef<RenderInfo>({
     timer: 0,
@@ -115,51 +118,55 @@ const PianoRoll = (props: PianoRollProps) => {
 
       const keyNames = Object.keys(renderInfo.current.blockRail)
 
-      if (practiceMode === 'normal') {
-        keyNames.forEach((keyName) => {
-          if (renderInfo.current.blockRail[keyName].length === 0) return
+      if (playingState === 'playing') {
+        if (practiceMode === 'normal') {
+          keyNames.forEach((keyName) => {
+            if (renderInfo.current.blockRail[keyName].length === 0) return
 
-          const block = renderInfo.current.blockRail[keyName][0]
+            const block = renderInfo.current.blockRail[keyName][0]
 
-          if (block.noteEvent[0] <= renderInfo.current.timer) {
-            refNoteBlocks[block.idx].current.color.set(0xff0000)
+            if (block.noteEvent[0] <= renderInfo.current.timer) {
+              refNoteBlocks[block.idx].current.color.set(0xff0000)
 
-            if (block.noteEvent[4] === false) {
-              noteDown(block.noteEvent[2])
-              block.noteEvent[4] = true
+              if (block.noteEvent[4] === false) {
+                noteDown(block.noteEvent[2])
+                block.noteEvent[4] = true
+              }
             }
-          }
 
-          if (block.noteEvent[1] <= renderInfo.current.timer) {
-            noteUp(block.noteEvent[2])
-            renderInfo.current.blockRail[keyName].shift()
-          }
-        }, [])
+            if (block.noteEvent[1] <= renderInfo.current.timer) {
+              noteUp(block.noteEvent[2])
+              renderInfo.current.blockRail[keyName].shift()
+            }
+          }, [])
 
-        ref.current.position.setY(
-          -Y_LENGTH_PER_SECOND * renderInfo.current.timer
-        )
-
-        renderInfo.current.timer += delta
-      } else if (practiceMode === 'step') {
-        const notesToWait: NoteEvent[] = []
-        // get the list of notes to be touched
-        keyNames.forEach((keyName) => {
-          if (renderInfo.current.blockRail[keyName].length === 0) return
-
-          const block = renderInfo.current.blockRail[keyName][0]
-          if (block.noteEvent[0] <= renderInfo.current.timer) {
-            notesToWait.push(block.noteEvent)
-          }
-        })
-
-        // skip the empty spaces
-        if (notesToWait.length === 0) {
           ref.current.position.setY(
             -Y_LENGTH_PER_SECOND * renderInfo.current.timer
           )
+
           renderInfo.current.timer += delta
+        } else if (practiceMode === 'step') {
+          const notesToWait: NoteEvent[] = []
+          // get the list of notes to be touched
+          keyNames.forEach((keyName) => {
+            if (renderInfo.current.blockRail[keyName].length === 0) return
+
+            const block = renderInfo.current.blockRail[keyName][0]
+            if (block.noteEvent[0] <= renderInfo.current.timer) {
+              notesToWait.push(block.noteEvent)
+            }
+          })
+
+          // skip the empty spaces
+          if (notesToWait.length === 0) {
+            ref.current.position.setY(
+              -Y_LENGTH_PER_SECOND * renderInfo.current.timer
+            )
+            renderInfo.current.timer += delta
+          }
         }
+      } else if (playingState === 'stopped') {
+        renderInfo.current.timer = 0
       }
     })
 
@@ -171,7 +178,7 @@ const PianoRoll = (props: PianoRollProps) => {
       <div
         style={{
           width: '70vw',
-          height: 'calc(75vh)',
+          height: 'calc(70vh)',
           background: 'grey',
         }}
       >
@@ -200,6 +207,7 @@ const PianoRoll = (props: PianoRollProps) => {
             </group>
           </Suspense>
         </Canvas>
+        <TransportPanel />
       </div>
     </div>
   )

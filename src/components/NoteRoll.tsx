@@ -3,7 +3,14 @@ import { NoteEvent } from 'types/midi'
 
 import { Canvas, useFrame } from '@react-three/fiber'
 
-import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 
 import {
   KeyRenderSpace,
@@ -34,7 +41,7 @@ const PianoRoll = (props: PianoRollProps) => {
   const refNoteBlocks = Array.from({ length: 10000 }, () =>
     useRef<THREE.MeshStandardMaterial>(null!)
   )
-  const [practiceMode] = useState<PracticeMode>('step')
+  const [practiceMode] = useState<PracticeMode>('normal')
   const { setHandleNoteDown } = useMidiControl()
   const { playingState } = useTransport()
 
@@ -55,6 +62,23 @@ const PianoRoll = (props: PianoRollProps) => {
       }
     })
   }, [setHandleNoteDown])
+
+  const generateBlockRail = useCallback(() => {
+    renderInfo.current.blockRail = {}
+
+    props.noteEvents.forEach((note: NoteEvent, idx) => {
+      const pitch = note[2]
+      note[4] = false
+      if (renderInfo.current) {
+        renderInfo.current.blockRail[pitch] =
+          renderInfo.current.blockRail[pitch] || []
+        renderInfo.current.blockRail[pitch].push({
+          noteEvent: note,
+          idx: idx,
+        })
+      }
+    })
+  }, [props.noteEvents])
 
   const noteBlocks = useMemo(() => {
     return props.noteEvents.map((note: NoteEvent, idx) => {
@@ -96,68 +120,66 @@ const PianoRoll = (props: PianoRollProps) => {
   }, [props.noteEvents, refNoteBlocks])
 
   useEffect(() => {
-    props.noteEvents.forEach((note: NoteEvent, idx) => {
-      const pitch = note[2]
-      note[4] = false
-      if (renderInfo.current) {
-        renderInfo.current.blockRail[pitch] =
-          renderInfo.current.blockRail[pitch] || []
-        renderInfo.current.blockRail[pitch].push({
-          noteEvent: note,
-          idx: idx,
-        })
-      }
-    })
-
+    generateBlockRail()
     if (props.noteEvents.length) renderInfo.current.status = 'LOADED'
-  }, [props.noteEvents])
+  }, [generateBlockRail, props.noteEvents])
+
+  useEffect(() => {
+    if (playingState === 'stopped') {
+      generateBlockRail()
+      renderInfo.current.timer = 0
+    }
+  }, [generateBlockRail, playingState])
 
   const NoteRender = () => {
+    const keyNames = Object.keys(renderInfo.current.blockRail)
+    const processBlocks = () => {
+      keyNames.forEach((keyName) => {
+        if (renderInfo.current.blockRail[keyName].length === 0) return
+
+        const block = renderInfo.current.blockRail[keyName][0]
+
+        if (block.noteEvent[0] <= renderInfo.current.timer) {
+          refNoteBlocks[block.idx].current.color.set(0xff0000)
+
+          if (!block.noteEvent[4]) {
+            noteDown(block.noteEvent[2])
+            block.noteEvent[4] = true
+          }
+        }
+
+        if (block.noteEvent[1] <= renderInfo.current.timer) {
+          noteUp(block.noteEvent[2])
+          renderInfo.current.blockRail[keyName].shift()
+        }
+      })
+    }
+
+    const getNotesToWait = (): NoteEvent[] => {
+      const notesToWait: NoteEvent[] = []
+      keyNames.forEach((keyName) => {
+        if (renderInfo.current.blockRail[keyName].length === 0) return
+
+        const block = renderInfo.current.blockRail[keyName][0]
+        if (block.noteEvent[0] <= renderInfo.current.timer) {
+          notesToWait.push(block.noteEvent)
+        }
+      })
+      return notesToWait
+    }
+
     useFrame((_state, delta) => {
       if (!renderInfo.current || renderInfo.current.status != 'LOADED') return
 
-      const keyNames = Object.keys(renderInfo.current.blockRail)
-
       if (playingState === 'playing') {
         if (practiceMode === 'normal') {
-          keyNames.forEach((keyName) => {
-            if (renderInfo.current.blockRail[keyName].length === 0) return
-
-            const block = renderInfo.current.blockRail[keyName][0]
-
-            if (block.noteEvent[0] <= renderInfo.current.timer) {
-              refNoteBlocks[block.idx].current.color.set(0xff0000)
-
-              if (block.noteEvent[4] === false) {
-                noteDown(block.noteEvent[2])
-                block.noteEvent[4] = true
-              }
-            }
-
-            if (block.noteEvent[1] <= renderInfo.current.timer) {
-              noteUp(block.noteEvent[2])
-              renderInfo.current.blockRail[keyName].shift()
-            }
-          }, [])
-
+          processBlocks()
           ref.current.position.setY(
             -Y_LENGTH_PER_SECOND * renderInfo.current.timer
           )
-
           renderInfo.current.timer += delta
         } else if (practiceMode === 'step') {
-          const notesToWait: NoteEvent[] = []
-          // get the list of notes to be touched
-          keyNames.forEach((keyName) => {
-            if (renderInfo.current.blockRail[keyName].length === 0) return
-
-            const block = renderInfo.current.blockRail[keyName][0]
-            if (block.noteEvent[0] <= renderInfo.current.timer) {
-              notesToWait.push(block.noteEvent)
-            }
-          })
-
-          // skip the empty spaces
+          const notesToWait: NoteEvent[] = getNotesToWait()
           if (notesToWait.length === 0) {
             ref.current.position.setY(
               -Y_LENGTH_PER_SECOND * renderInfo.current.timer
@@ -165,8 +187,6 @@ const PianoRoll = (props: PianoRollProps) => {
             renderInfo.current.timer += delta
           }
         }
-      } else if (playingState === 'stopped') {
-        renderInfo.current.timer = 0
       }
     })
 

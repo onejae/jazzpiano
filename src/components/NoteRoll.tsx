@@ -3,14 +3,7 @@ import { NoteEvent } from 'types/midi'
 
 import { Canvas, useFrame } from '@react-three/fiber'
 
-import {
-  Suspense,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useRef } from 'react'
 
 import {
   KeyRenderSpace,
@@ -20,6 +13,7 @@ import {
 import { useMidiControl } from '../providers/MidiControl'
 import { TransportPanel } from './TransportPanel'
 import { useTransport } from '@providers/TransportProvider'
+import { keyModels } from '@libs/midiControl'
 
 interface PianoRollProps {
   noteEvents: NoteEvent[]
@@ -40,7 +34,7 @@ const PianoRoll = (props: PianoRollProps) => {
     useRef<THREE.MeshStandardMaterial>(null!)
   )
   const { setHandleNoteDown } = useMidiControl()
-  const { playingState, playingMode } = useTransport()
+  const { playingState, playingMode, railAngle } = useTransport()
 
   const renderInfo = useRef<RenderInfo>({
     timer: 0,
@@ -132,6 +126,29 @@ const PianoRoll = (props: PianoRollProps) => {
     }
   }, [generateBlockRail, playingState])
 
+  const Background = () => {
+    const lanes = []
+
+    keyModels.forEach((v) => {
+      const renderSpace = KeyRenderSpace[v.midiNumber]
+
+      lanes.push(
+        <mesh position={[renderSpace.x, 0, renderSpace.z - 0.01]} frustumCulled>
+          <boxGeometry args={[renderSpace.w, 100, renderSpace.d]} />
+          <meshStandardMaterial
+            color={v.isWhiteKey() ? 0x404040 : 0xe0e0e0}
+            clippingPlanes={[
+              new THREE.Plane(new THREE.Vector3(0, 1, -1), 1.73),
+            ]}
+            side={THREE.FrontSide}
+          />
+        </mesh>
+      )
+    })
+
+    return <group>{lanes}</group>
+  }
+
   const NoteRender = () => {
     const keyNames = Object.keys(renderInfo.current.blockRail)
     const processBlocks = () => {
@@ -204,7 +221,7 @@ const PianoRoll = (props: PianoRollProps) => {
         style={{
           width: '70vw',
           height: 'calc(70vh)',
-          background: 'grey',
+          backgroundColor: 'white',
         }}
       >
         <Canvas
@@ -224,9 +241,10 @@ const PianoRoll = (props: PianoRollProps) => {
 
             <group
               scale={[1, 1, 1]}
-              rotation={[-0.1, 0, 0]}
+              rotation={[railAngle, 0, 0]}
               position={[0, -3.5, 0]}
             >
+              <Background />
               <NoteRender />
               <VirtualPiano />
             </group>

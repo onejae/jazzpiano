@@ -15,6 +15,8 @@ interface TransportContextType {
   setPlayingState: Dispatch<SetStateAction<PlayingState>>
   playingMode: PlayingMode
   setPlayingMode: Dispatch<SetStateAction<PlayingMode>>
+  railAngle: number
+  setRailAngle: Dispatch<SetStateAction<number>>
 }
 
 const transportContext = createContext<TransportContextType>(null!)
@@ -26,6 +28,7 @@ export const useTransport = () => {
 export const TransportProvider = (props: PropsWithChildren) => {
   const [playingState, setPlayingState] = useState<PlayingState>('stopped')
   const [playingMode, setPlayingMode] = useState<PlayingMode>('step')
+  const [railAngle, setRailAngle] = useState(-0.3)
 
   return (
     <transportContext.Provider
@@ -34,6 +37,8 @@ export const TransportProvider = (props: PropsWithChildren) => {
         setPlayingState: setPlayingState,
         playingMode: playingMode,
         setPlayingMode: setPlayingMode,
+        railAngle: railAngle,
+        setRailAngle: setRailAngle,
       }}
     >
       {props.children}

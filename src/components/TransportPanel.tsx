@@ -11,8 +11,13 @@ import { useTransport } from '@providers/TransportProvider'
 import { useCallback } from 'react'
 
 export const TransportPanel = () => {
-  const { playingState, setPlayingState, playingMode, setPlayingMode } =
-    useTransport()
+  const {
+    playingState,
+    setPlayingState,
+    playingMode,
+    setPlayingMode,
+    setRailAngle,
+  } = useTransport()
   const handlePlayButton = useCallback(() => {
     setPlayingState((current) => (current === 'playing' ? 'paused' : 'playing'))
   }, [setPlayingState])
@@ -98,6 +103,10 @@ export const TransportPanel = () => {
         <Button>{'<'}</Button>
         <Button>{'>'}</Button>
         <Button>{'>>'}</Button>
+      </Box>
+      <Box flexGrow={1}>
+        <Button onClick={() => setRailAngle((c) => (c -= 0.1))}>Up</Button>
+        <Button onClick={() => setRailAngle((c) => (c += 0.1))}>Down</Button>
       </Box>
       <Box>
         <FormGroup>

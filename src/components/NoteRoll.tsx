@@ -33,17 +33,14 @@ interface RenderInfo {
   status: 'INIT' | 'LOADED' | 'PLAYING'
 }
 
-type PracticeMode = 'step' | 'normal' | 'preview'
-
 const PianoRoll = (props: PianoRollProps) => {
   const { noteUp, noteDown } = useVirtualPiano()
   const ref = useRef<THREE.Group>(null!)
   const refNoteBlocks = Array.from({ length: 10000 }, () =>
     useRef<THREE.MeshStandardMaterial>(null!)
   )
-  const [practiceMode] = useState<PracticeMode>('normal')
   const { setHandleNoteDown } = useMidiControl()
-  const { playingState } = useTransport()
+  const { playingState, playingMode } = useTransport()
 
   const renderInfo = useRef<RenderInfo>({
     timer: 0,
@@ -54,7 +51,11 @@ const PianoRoll = (props: PianoRollProps) => {
 
   useEffect(() => {
     setHandleNoteDown(() => (midiNumber: number) => {
-      if (renderInfo.current.blockRail[midiNumber].length === 0) return
+      if (
+        !(midiNumber in renderInfo.current.blockRail) ||
+        renderInfo.current.blockRail[midiNumber].length === 0
+      )
+        return
       const block = renderInfo.current.blockRail[midiNumber][0]
 
       if (block.noteEvent[0] <= renderInfo.current.timer) {
@@ -171,23 +172,27 @@ const PianoRoll = (props: PianoRollProps) => {
     useFrame((_state, delta) => {
       if (!renderInfo.current || renderInfo.current.status != 'LOADED') return
 
-      if (playingState === 'playing') {
-        if (practiceMode === 'normal') {
-          processBlocks()
-          ref.current.position.setY(
-            -Y_LENGTH_PER_SECOND * renderInfo.current.timer
-          )
-          renderInfo.current.timer += delta
-        } else if (practiceMode === 'step') {
-          const notesToWait: NoteEvent[] = getNotesToWait()
-          if (notesToWait.length === 0) {
-            ref.current.position.setY(
-              -Y_LENGTH_PER_SECOND * renderInfo.current.timer
-            )
-            renderInfo.current.timer += delta
-          }
-        }
+      if (playingState === 'stopped') return
+
+      if (playingState === 'paused') {
+        processBlocks()
+        ref.current.position.setY(
+          -Y_LENGTH_PER_SECOND * renderInfo.current.timer
+        )
+        return
       }
+
+      if (playingMode === 'step') {
+        const notesToWait: NoteEvent[] = getNotesToWait()
+        if (notesToWait.length === 0) {
+          renderInfo.current.timer += delta
+        }
+      } else {
+        renderInfo.current.timer += delta
+      }
+
+      processBlocks()
+      ref.current.position.setY(-Y_LENGTH_PER_SECOND * renderInfo.current.timer)
     })
 
     return <group ref={ref}>{noteBlocks}</group>

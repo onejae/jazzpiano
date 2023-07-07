@@ -1,6 +1,6 @@
 import { ThreeElements, Vector3 } from '@react-three/fiber'
 import { useCallback, useEffect, useRef } from 'react'
-import { KEY_NUM, START_MIDI_KEY } from '@constants/keys'
+import { START_MIDI_KEY } from '@constants/keys'
 import { KeyModel, keyModels } from '@libs/midiControl'
 import { SplendidGrandPiano } from 'smplr'
 import { useMidiControl } from '@providers/MidiControl'
@@ -83,27 +83,14 @@ for (let lastX = START_X, i = 0; i < keyModels.length; i++) {
   lastX = lastX + (key.isWhiteKey() ? WHITEKEY_WIDTH + PADDING_X : 0)
 }
 
-export const useVirtualPiano = () => {
-  const refPianoKeys = Array.from({ length: KEY_NUM }, () =>
-    useRef<THREE.MeshStandardMaterial>(null!)
-  )
-
-  const noteDown = useCallback((midiNumber: number, velocity = 80) => {
-    pianoPlayer.start({
-      note: midiNumber,
-      velocity: velocity,
-    })
-  }, [])
-  const noteUp = useCallback((midiNumber: number) => {
-    pianoPlayer.stop(midiNumber)
-  }, [])
-
-  return { refPianoKeys, noteDown, noteUp }
-}
-
 export const VirtualPiano = (props: ThreeElements['mesh']) => {
-  const { refPianoKeys, noteDown, noteUp } = useVirtualPiano()
-  const { handleNoteDown, handleNoteUp } = useMidiControl()
+  const refPianoKeys = useRef([])
+  const {
+    handleMidiNoteDown,
+    handleMidiNoteUp,
+    setHandlePreviewNoteDown,
+    setHandlePreviewNoteUp,
+  } = useMidiControl()
 
   const handleKeyDown = useCallback(
     (ev: KeyboardEvent) => {
@@ -113,16 +100,19 @@ export const VirtualPiano = (props: ThreeElements['mesh']) => {
       if (pressedKey && pressedKey.pressed === false) {
         pressedKey.pressed = true
 
-        refPianoKeys[midiNumber - START_MIDI_KEY].current.color.set('blue')
+        refPianoKeys.current[midiNumber - START_MIDI_KEY].color.set('blue')
 
-        noteDown(pressedKey.midiNumber, 80)
+        pianoPlayer.start({
+          note: midiNumber,
+          velocity: 80,
+        })
 
-        if (handleNoteDown) {
-          handleNoteDown(pressedKey.midiNumber)
+        if (handleMidiNoteDown) {
+          handleMidiNoteDown(pressedKey.midiNumber, 80)
         }
       }
     },
-    [handleNoteDown, noteDown, refPianoKeys]
+    [handleMidiNoteDown, refPianoKeys]
   )
 
   const handleKeyUp = useCallback(
@@ -132,21 +122,33 @@ export const VirtualPiano = (props: ThreeElements['mesh']) => {
 
       if (pressedKey) {
         pressedKey.pressed = false
-        refPianoKeys[midiNumber - START_MIDI_KEY].current.color.set(
+        refPianoKeys.current[midiNumber - START_MIDI_KEY].color.set(
           keyModels[midiNumber - START_MIDI_KEY].isWhiteKey()
             ? 'white'
             : 'black'
         )
 
-        noteUp(pressedKey.midiNumber)
+        pianoPlayer.stop(midiNumber)
 
-        if (handleNoteUp) {
-          handleNoteUp(pressedKey.midiNumber)
+        if (handleMidiNoteUp) {
+          handleMidiNoteUp(pressedKey.midiNumber, 80)
         }
       }
     },
-    [handleNoteUp, noteUp, refPianoKeys]
+    [handleMidiNoteUp, refPianoKeys]
   )
+
+  useEffect(() => {
+    setHandlePreviewNoteDown(() => (m, v) => {
+      refPianoKeys.current[m - START_MIDI_KEY].color.set('blue')
+    })
+
+    setHandlePreviewNoteUp(() => (m, v) => {
+      refPianoKeys.current[m - START_MIDI_KEY].color.set(
+        keyModels[m - START_MIDI_KEY].isWhiteKey() ? 'white' : 'black'
+      )
+    })
+  }, [setHandlePreviewNoteDown, setHandlePreviewNoteUp])
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown)
@@ -171,7 +173,9 @@ export const VirtualPiano = (props: ThreeElements['mesh']) => {
           >
             <boxGeometry args={[renderSpace.w, renderSpace.h, renderSpace.d]} />
             <meshStandardMaterial
-              ref={refPianoKeys[idx]}
+              ref={(el) => {
+                refPianoKeys.current[idx] = el
+              }}
               color={key.isWhiteKey() ? 'white' : 'black'}
             ></meshStandardMaterial>
           </mesh>

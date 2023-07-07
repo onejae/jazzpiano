@@ -1,14 +1,20 @@
 import { createContext, useContext, useState } from 'react'
 import { PropsWithChildren } from 'react'
 
+type MidiNoteEventType = (midinumber: number, velocity: number) => any
 interface MidiControlContextType {
-  handleNoteDown: (midiNumber: number) => any
-  setHandleNoteDown: React.Dispatch<
-    React.SetStateAction<(midiNumber: number) => any>
+  handleMidiNoteDown: MidiNoteEventType
+  setHandleMidiNoteDown: React.Dispatch<React.SetStateAction<MidiNoteEventType>>
+  handleMidiNoteUp: MidiNoteEventType
+  setHandleMidiNoteUp: React.Dispatch<React.SetStateAction<MidiNoteEventType>>
+
+  handlePreviewNoteDown: MidiNoteEventType
+  setHandlePreviewNoteDown: React.Dispatch<
+    React.SetStateAction<MidiNoteEventType>
   >
-  handleNoteUp: (midiNumber: number) => any
-  setHandleNoteUp: React.Dispatch<
-    React.SetStateAction<(midiNumber: number) => any>
+  handlePreviewNoteUp: MidiNoteEventType
+  setHandlePreviewNoteUp: React.Dispatch<
+    React.SetStateAction<MidiNoteEventType>
   >
 }
 const MidiControlContext = createContext<MidiControlContextType>(null!)
@@ -18,21 +24,30 @@ const useMidiControl = () => {
 }
 
 const MidiControlProvider = (props: PropsWithChildren) => {
-  const [handleNoteDown, setHandleNoteDown] = useState<
-    (midiNumber: number) => any
-  >(() => () => {})
+  const [handleMidiNoteDown, setHandleMidiNoteDown] =
+    useState<MidiNoteEventType>(() => () => {})
 
-  const [handleNoteUp, setHandleNoteUp] = useState<(midiNumber: number) => any>(
+  const [handleMidiNoteUp, setHandleMidiNoteUp] = useState<MidiNoteEventType>(
     () => () => {}
   )
+
+  const [handlePreviewNoteDown, setHandlePreviewNoteDown] =
+    useState<MidiNoteEventType>(() => () => {})
+
+  const [handlePreviewNoteUp, setHandlePreviewNoteUp] =
+    useState<MidiNoteEventType>(() => () => {})
 
   return (
     <MidiControlContext.Provider
       value={{
-        handleNoteDown: handleNoteDown,
-        setHandleNoteDown: setHandleNoteDown,
-        handleNoteUp: handleNoteUp,
-        setHandleNoteUp: setHandleNoteUp,
+        handleMidiNoteDown: handleMidiNoteDown,
+        setHandleMidiNoteDown: setHandleMidiNoteDown,
+        handleMidiNoteUp: handleMidiNoteUp,
+        setHandleMidiNoteUp: setHandleMidiNoteUp,
+        handlePreviewNoteDown: handlePreviewNoteDown,
+        setHandlePreviewNoteDown: setHandlePreviewNoteDown,
+        handlePreviewNoteUp: handlePreviewNoteUp,
+        setHandlePreviewNoteUp: setHandlePreviewNoteUp,
       }}
     >
       {props.children}

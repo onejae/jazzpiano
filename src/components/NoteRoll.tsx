@@ -5,11 +5,7 @@ import { Canvas, useFrame } from '@react-three/fiber'
 
 import { Suspense, useCallback, useEffect, useMemo, useRef } from 'react'
 
-import {
-  KeyRenderSpace,
-  VirtualPiano,
-  useVirtualPiano,
-} from '@components/VirtualPiano'
+import { KeyRenderSpace, VirtualPiano } from '@components/VirtualPiano'
 import { useMidiControl } from '../providers/MidiControl'
 import { TransportPanel } from './TransportPanel'
 import { useTransport } from '@providers/TransportProvider'
@@ -28,12 +24,12 @@ interface RenderInfo {
 }
 
 const PianoRoll = (props: PianoRollProps) => {
-  const { noteUp, noteDown } = useVirtualPiano()
   const ref = useRef<THREE.Group>(null!)
   const refNoteBlocks = Array.from({ length: 10000 }, () =>
     useRef<THREE.MeshStandardMaterial>(null!)
   )
-  const { setHandleNoteDown } = useMidiControl()
+  const { setHandleMidiNoteDown, handlePreviewNoteDown, handlePreviewNoteUp } =
+    useMidiControl()
   const { playingState, playingMode, railAngle } = useTransport()
 
   const renderInfo = useRef<RenderInfo>({
@@ -44,7 +40,7 @@ const PianoRoll = (props: PianoRollProps) => {
   })
 
   useEffect(() => {
-    setHandleNoteDown(() => (midiNumber: number) => {
+    setHandleMidiNoteDown(() => (midiNumber: number) => {
       if (
         !(midiNumber in renderInfo.current.blockRail) ||
         renderInfo.current.blockRail[midiNumber].length === 0
@@ -56,7 +52,7 @@ const PianoRoll = (props: PianoRollProps) => {
         renderInfo.current.blockRail[midiNumber].shift()
       }
     })
-  }, [setHandleNoteDown])
+  }, [setHandleMidiNoteDown])
 
   const generateBlockRail = useCallback(() => {
     renderInfo.current.blockRail = {}
@@ -161,13 +157,15 @@ const PianoRoll = (props: PianoRollProps) => {
           refNoteBlocks[block.idx].current.color.set(0xff0000)
 
           if (!block.noteEvent[4]) {
-            noteDown(block.noteEvent[2])
+            if (handlePreviewNoteDown)
+              handlePreviewNoteDown(block.noteEvent[2], block.noteEvent[3])
             block.noteEvent[4] = true
           }
         }
 
         if (block.noteEvent[1] <= renderInfo.current.timer) {
-          noteUp(block.noteEvent[2])
+          if (handlePreviewNoteUp)
+            handlePreviewNoteUp(block.noteEvent[2], block.noteEvent[3])
           renderInfo.current.blockRail[keyName].shift()
         }
       })

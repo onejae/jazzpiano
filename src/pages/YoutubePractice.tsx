@@ -8,6 +8,8 @@ import { TransportProvider } from '@providers/TransportProvider'
 import { RealPiano } from '@components/RealPiano'
 import { AudioDropzone, useAudioDropzone } from '@components/AudioDropzone'
 
+import { Midi } from '@tonejs/midi'
+
 type ROLLSTATE = 'INIT' | 'PLAYING'
 
 const YoutubePractice = () => {
@@ -36,11 +38,23 @@ const YoutubePractice = () => {
     }
   }, [youtubeLink])
 
+  const handleDropFile = useCallback((files: []) => {
+    const reader = new FileReader()
+    reader.onload = function (e) {
+      const buf = e.target.result as ArrayBuffer
+
+      const midi = new Midi(buf)
+
+      midi.tracks.forEach((t) => console.log(t))
+    }
+    reader.readAsArrayBuffer(files[0])
+  }, [])
+
   return (
     <Box display="flex" flexDirection={'column'}>
       <Box flexGrow={1}>
         <AudioDropzone
-          onDrop={(files) => alert(files)}
+          onDrop={handleDropFile}
           onYoutubeLink={handleYoutubeLink}
         />
         <TransportProvider>

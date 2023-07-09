@@ -17,8 +17,10 @@
     "@mui/material": "^5.13.5",
     "@react-three/fiber": "^8.13.3",
     "@react-three/rapier": "^1.1.1",
+    "@tonejs/midi": "^2.0.28",
     "@types/three": "^0.152.1",
     "axios": "^1.4.0",
+    "fs": "^0.0.1-security",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-dropzone": "^14.2.3",
@@ -28,6 +30,7 @@
     "webmidi": "^3.1.6"
   },
   "devDependencies": {
+    "@types/node": "^20.4.1",
     "@types/react": "^18.0.37",
     "@types/react-dom": "^18.0.11",
     "@types/webmidi": "^2.0.7",

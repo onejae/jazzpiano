@@ -30,7 +30,7 @@ export const AudioDropzone = (audioProps: {
       alignItems="center"
       width={'100%'}
     >
-      <Dropzone onDrop={onDrop}>
+      <Dropzone accept={{ 'audio/midi': ['.mid'] }} onDrop={onDrop}>
         {({ getRootProps, getInputProps }) => {
           const props = getRootProps()
           props.style = {

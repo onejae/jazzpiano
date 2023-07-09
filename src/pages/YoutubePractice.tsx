@@ -1,4 +1,4 @@
-import { Box, Button, TextField } from '@mui/material'
+import { Box } from '@mui/material'
 import { useCallback, useState } from 'react'
 import { getMidiFromYoutubeLink } from '@services/convertService'
 import { NoteEvent } from 'types/midi'
@@ -11,7 +11,7 @@ import { AudioDropzone, useAudioDropzone } from '@components/AudioDropzone'
 type ROLLSTATE = 'INIT' | 'PLAYING'
 
 const YoutubePractice = () => {
-  const [youtubeLink, setYoutubeLink] = useState('')
+  const { youtubeLink } = useAudioDropzone()
   const [noteEvents, setNoteEvents] = useState<NoteEvent[] | null>(null)
   const [_rollState, setRollState] = useState<ROLLSTATE>('INIT')
   const handleYoutubeLink = useCallback(async () => {
@@ -41,7 +41,7 @@ const YoutubePractice = () => {
       <Box flexGrow={1}>
         <AudioDropzone
           onDrop={(files) => alert(files)}
-          onYoutubeLink={() => {}}
+          onYoutubeLink={handleYoutubeLink}
         />
         <TransportProvider>
           <MidiControlProvider>

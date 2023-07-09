@@ -6,7 +6,7 @@ import PianoRoll from '@components/NoteRoll'
 import { MidiControlProvider } from '@providers/MidiControl'
 import { TransportProvider } from '@providers/TransportProvider'
 import { RealPiano } from '@components/RealPiano'
-import { useDropzone } from 'react-dropzone'
+import { AudioDropzone, useAudioDropzone } from '@components/AudioDropzone'
 
 type ROLLSTATE = 'INIT' | 'PLAYING'
 
@@ -38,22 +38,11 @@ const YoutubePractice = () => {
 
   return (
     <Box display="flex" flexDirection={'column'}>
-      <Box display="flex" justifyContent={'center'} padding={2}>
-        <TextField
-          sx={{ minWidth: 380 }}
-          id="standard-basic"
-          label="Youtube link"
-          value={youtubeLink}
-          variant="standard"
-          onChange={(e) => {
-            setYoutubeLink(e.target.value)
-          }}
-          InputProps={{
-            endAdornment: <Button onClick={handleYoutubeLink}>GET</Button>,
-          }}
-        />
-      </Box>
       <Box flexGrow={1}>
+        <AudioDropzone
+          onDrop={(files) => alert(files)}
+          onYoutubeLink={() => {}}
+        />
         <TransportProvider>
           <MidiControlProvider>
             <PianoRoll noteEvents={noteEvents || []} />

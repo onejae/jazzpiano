@@ -258,7 +258,7 @@ const PianoRoll = (props: PianoRollProps) => {
       <div
         style={{
           width: '100vw',
-          height: 'calc(70vh)',
+          height: 'calc(60vh)',
           backgroundColor: 'white',
         }}
       >

@@ -39,10 +39,10 @@ pianoPlayer.loaded().then(() => {
   console.log('--- virtual piano player is ready')
 })
 
-const START_X = -8
-const WHITEKEY_WIDTH = 0.3
+const START_X = -11.5
+const WHITEKEY_WIDTH = 0.5
 const WHITEKEY_HEIGHT = 1.3
-const BLACKKEY_WIDTH = 0.2
+const BLACKKEY_WIDTH = 0.3
 const BLACKKEY_HEIGHT = 0.9
 const PADDING_X = 0.03
 
@@ -139,14 +139,21 @@ export const VirtualPiano = (props: ThreeElements['mesh']) => {
   )
 
   useEffect(() => {
-    setHandlePreviewNoteDown(() => (m, v) => {
+    setHandlePreviewNoteDown(() => (m) => {
       refPianoKeys.current[m - START_MIDI_KEY].color.set('blue')
+
+      pianoPlayer.start({
+        note: m,
+        velocity: 80,
+      })
     })
 
-    setHandlePreviewNoteUp(() => (m, v) => {
+    setHandlePreviewNoteUp(() => (m) => {
       refPianoKeys.current[m - START_MIDI_KEY].color.set(
         keyModels[m - START_MIDI_KEY].isWhiteKey() ? 'white' : 'black'
       )
+
+      pianoPlayer.stop(m)
     })
   }, [setHandlePreviewNoteDown, setHandlePreviewNoteUp])
 

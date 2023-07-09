@@ -23,11 +23,13 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.13.0",
     "smplr": "^0.6.1",
-    "three": "^0.153.0"
+    "three": "^0.153.0",
+    "webmidi": "^3.1.6"
   },
   "devDependencies": {
     "@types/react": "^18.0.37",
     "@types/react-dom": "^18.0.11",
+    "@types/webmidi": "^2.0.7",
     "@typescript-eslint/eslint-plugin": "^5.59.11",
     "@typescript-eslint/parser": "^5.59.0",
     "@vitejs/plugin-react-swc": "^3.0.0",

@@ -5,6 +5,7 @@ import { NoteEvent } from 'types/midi'
 import PianoRoll from '@components/NoteRoll'
 import { MidiControlProvider } from '@providers/MidiControl'
 import { TransportProvider } from '@providers/TransportProvider'
+import { RealPiano } from '@components/RealPiano'
 
 type ROLLSTATE = 'INIT' | 'PLAYING'
 
@@ -55,6 +56,7 @@ const YoutubePractice = () => {
         <TransportProvider>
           <MidiControlProvider>
             <PianoRoll noteEvents={noteEvents || []} />
+            <RealPiano />
           </MidiControlProvider>
         </TransportProvider>
       </Box>

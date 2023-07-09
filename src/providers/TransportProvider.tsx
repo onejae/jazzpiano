@@ -8,7 +8,7 @@ import {
 } from 'react'
 
 type PlayingState = 'playing' | 'paused' | 'stopped'
-type PlayingMode = 'preview' | 'standard' | 'step'
+export type PlayingMode = 'preview' | 'standard' | 'step'
 
 interface TransportContextType {
   playingState: PlayingState
@@ -28,7 +28,7 @@ export const useTransport = () => {
 export const TransportProvider = (props: PropsWithChildren) => {
   const [playingState, setPlayingState] = useState<PlayingState>('stopped')
   const [playingMode, setPlayingMode] = useState<PlayingMode>('step')
-  const [railAngle, setRailAngle] = useState(-0.3)
+  const [railAngle, setRailAngle] = useState(-1.2)
 
   return (
     <transportContext.Provider

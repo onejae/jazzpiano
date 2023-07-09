@@ -16,11 +16,28 @@ interface PianoRollProps {
 }
 
 const Y_LENGTH_PER_SECOND = 1
+
+interface Block {
+  noteEvent: NoteEvent
+  idx: number
+}
+
 interface RenderInfo {
   timer: number
   indexFrom: number
-  blockRail: { [key: string]: { noteEvent: NoteEvent; idx: number }[] }
+  blockRail: { [key: string]: Block[] }
   status: 'INIT' | 'LOADED' | 'PLAYING'
+}
+
+interface ScoreCriterion {
+  [timeRange: number]: { score: number; name: string }
+}
+
+const ScoreCriterionTable: ScoreCriterion = {
+  0.1: { score: 1, name: 'perfect' },
+  0.3: { score: 0.8, name: 'nice' },
+  0.5: { score: 0.5, name: 'good' },
+  0.9: { score: 0.1, name: 'poor' },
 }
 
 const PianoRoll = (props: PianoRollProps) => {
@@ -39,6 +56,20 @@ const PianoRoll = (props: PianoRollProps) => {
     status: 'INIT',
   })
 
+  const scoreUserTouch = (block: Block, timing: number) => {
+    const timingGap = Math.abs(block.noteEvent[0] - timing)
+    const belongingTiming = Object.keys(ScoreCriterionTable).find(
+      (v) => Number(v) >= timingGap
+    )
+
+    if (belongingTiming) {
+      return ScoreCriterionTable[belongingTiming].score
+    } else {
+      // missed
+      return -1
+    }
+  }
+
   useEffect(() => {
     setHandleMidiNoteDown(() => (midiNumber: number) => {
       if (
@@ -47,6 +78,11 @@ const PianoRoll = (props: PianoRollProps) => {
       )
         return
       const block = renderInfo.current.blockRail[midiNumber][0]
+
+      // score the touch
+      const score = scoreUserTouch(block, renderInfo.current.timer)
+      console.log(score)
+      // end of scoring
 
       if (block.noteEvent[0] <= renderInfo.current.timer) {
         renderInfo.current.blockRail[midiNumber].shift()
@@ -125,14 +161,18 @@ const PianoRoll = (props: PianoRollProps) => {
   const Background = () => {
     const lanes = []
 
-    keyModels.forEach((v) => {
+    keyModels.forEach((v, idx) => {
       const renderSpace = KeyRenderSpace[v.midiNumber]
 
       lanes.push(
-        <mesh position={[renderSpace.x, 0, renderSpace.z - 0.01]} frustumCulled>
+        <mesh
+          key={idx}
+          position={[renderSpace.x, 0, renderSpace.z - 0.01]}
+          frustumCulled
+        >
           <boxGeometry args={[renderSpace.w, 100, renderSpace.d]} />
           <meshStandardMaterial
-            color={v.isWhiteKey() ? 0x404040 : 0xe0e0e0}
+            color={v.isWhiteKey() ? 0x094782 : 0xffac00}
             clippingPlanes={[
               new THREE.Plane(new THREE.Vector3(0, 1, -1), 1.73),
             ]}
@@ -157,14 +197,14 @@ const PianoRoll = (props: PianoRollProps) => {
           refNoteBlocks[block.idx].current.color.set(0xff0000)
 
           if (!block.noteEvent[4]) {
-            if (handlePreviewNoteDown)
+            if (handlePreviewNoteDown && playingMode === 'preview')
               handlePreviewNoteDown(block.noteEvent[2], block.noteEvent[3])
             block.noteEvent[4] = true
           }
         }
 
         if (block.noteEvent[1] <= renderInfo.current.timer) {
-          if (handlePreviewNoteUp)
+          if (handlePreviewNoteUp && playingMode === 'preview')
             handlePreviewNoteUp(block.noteEvent[2], block.noteEvent[3])
           renderInfo.current.blockRail[keyName].shift()
         }
@@ -217,7 +257,7 @@ const PianoRoll = (props: PianoRollProps) => {
     <div style={{ width: '100%', justifyContent: 'center', display: 'flex' }}>
       <div
         style={{
-          width: '70vw',
+          width: '100vw',
           height: 'calc(70vh)',
           backgroundColor: 'white',
         }}

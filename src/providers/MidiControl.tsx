@@ -16,11 +16,19 @@ interface MidiControlContextType {
   setHandlePreviewNoteUp: React.Dispatch<
     React.SetStateAction<MidiNoteEventType>
   >
+
+  midiIdx: number
+  setMidiIdx: React.Dispatch<React.SetStateAction<number>>
 }
 const MidiControlContext = createContext<MidiControlContextType>(null!)
 
 const useMidiControl = () => {
   return useContext(MidiControlContext)
+}
+
+interface MidiDeviceInfo {
+  idx: number
+  name: string
 }
 
 const MidiControlProvider = (props: PropsWithChildren) => {
@@ -37,6 +45,8 @@ const MidiControlProvider = (props: PropsWithChildren) => {
   const [handlePreviewNoteUp, setHandlePreviewNoteUp] =
     useState<MidiNoteEventType>(() => () => {})
 
+  const [midiIdx, setMidiIdx] = useState(-1)
+
   return (
     <MidiControlContext.Provider
       value={{
@@ -48,6 +58,8 @@ const MidiControlProvider = (props: PropsWithChildren) => {
         setHandlePreviewNoteDown: setHandlePreviewNoteDown,
         handlePreviewNoteUp: handlePreviewNoteUp,
         setHandlePreviewNoteUp: setHandlePreviewNoteUp,
+        midiIdx: midiIdx,
+        setMidiIdx: setMidiIdx,
       }}
     >
       {props.children}

@@ -153,7 +153,7 @@ interface MenuItem {
 const MainLayout = () => {
   const [itemList, setItmeList] = useState<MenuItem[]>([
     {
-      displayName: 'Play with Youtube',
+      displayName: 'Playground',
       link: '/youtubepractice',
     },
     {

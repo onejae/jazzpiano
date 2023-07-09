@@ -47,4 +47,6 @@ export const RealPiano = () => {
     handlePreviewNoteDown,
     handlePreviewNoteUp,
   ])
+
+  return <></>
 }

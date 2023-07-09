@@ -6,6 +6,7 @@ import PianoRoll from '@components/NoteRoll'
 import { MidiControlProvider } from '@providers/MidiControl'
 import { TransportProvider } from '@providers/TransportProvider'
 import { RealPiano } from '@components/RealPiano'
+import { useDropzone } from 'react-dropzone'
 
 type ROLLSTATE = 'INIT' | 'PLAYING'
 

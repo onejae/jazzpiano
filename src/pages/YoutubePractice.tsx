@@ -1,6 +1,9 @@
 import { Box } from '@mui/material'
 import { useCallback, useState } from 'react'
-import { getMidiFromYoutubeLink } from '@services/convertService'
+import {
+  getMidiFromYoutubeLink,
+  getNoteEventsFromTonejs,
+} from '@services/convertService'
 import { NoteEvent } from 'types/midi'
 import PianoRoll from '@components/NoteRoll'
 import { MidiControlProvider } from '@providers/MidiControl'
@@ -8,8 +11,7 @@ import { TransportProvider } from '@providers/TransportProvider'
 import { RealPiano } from '@components/RealPiano'
 import { AudioDropzone, useAudioDropzone } from '@components/AudioDropzone'
 
-import { Midi, Track } from '@tonejs/midi'
-import { EXCLUDE_INSTRUMENT_FAMILIES } from '@constants/midi'
+import { Midi } from '@tonejs/midi'
 
 type ROLLSTATE = 'INIT' | 'PLAYING'
 
@@ -46,11 +48,9 @@ const YoutubePractice = () => {
 
       const midi = new Midi(buf)
 
-      midi.tracks.forEach((t: Track) => {
-        if (EXCLUDE_INSTRUMENT_FAMILIES.includes(t.instrument.family)) {
-          console.log(t.instrument.family)
-        }
-      })
+      const noteEvents = getNoteEventsFromTonejs(midi)
+
+      setNoteEvents(noteEvents)
     }
     reader.readAsArrayBuffer(files[0])
   }, [])

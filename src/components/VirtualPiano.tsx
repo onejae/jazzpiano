@@ -1,5 +1,5 @@
 import { ThreeElements, Vector3 } from '@react-three/fiber'
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { START_MIDI_KEY } from '@constants/keys'
 import { KeyModel, keyModels } from '@libs/midiControl'
 import { SplendidGrandPiano } from 'smplr'
@@ -92,50 +92,62 @@ export const VirtualPiano = (props: ThreeElements['mesh']) => {
     setHandlePreviewNoteUp,
   } = useMidiControl()
 
+  const [octaveShift, setOctaveShift] = useState(0)
+
   const handleKeyDown = useCallback(
     (ev: KeyboardEvent) => {
-      const midiNumber = KeyMidiTable[ev.key]
-      const pressedKey = keyModels.find((v) => v.midiNumber === midiNumber)
+      if (ev.code === 'ArrowLeft') {
+        setOctaveShift(-1)
+      } else if (ev.code === 'ArrowRight') {
+        setOctaveShift(1)
+      } else {
+        const midiNumber = KeyMidiTable[ev.key] + 12 * octaveShift
+        const pressedKey = keyModels.find((v) => v.midiNumber === midiNumber)
 
-      if (pressedKey && pressedKey.pressed === false) {
-        pressedKey.pressed = true
+        if (pressedKey && pressedKey.pressed === false) {
+          pressedKey.pressed = true
 
-        refPianoKeys.current[midiNumber - START_MIDI_KEY].color.set('blue')
+          refPianoKeys.current[midiNumber - START_MIDI_KEY].color.set('blue')
 
-        pianoPlayer.start({
-          note: midiNumber,
-          velocity: 80,
-        })
+          pianoPlayer.start({
+            note: midiNumber,
+            velocity: 80,
+          })
 
-        if (handleMidiNoteDown) {
-          handleMidiNoteDown(pressedKey.midiNumber, 80)
+          if (handleMidiNoteDown) {
+            handleMidiNoteDown(pressedKey.midiNumber, 80)
+          }
         }
       }
     },
-    [handleMidiNoteDown, refPianoKeys]
+    [handleMidiNoteDown, octaveShift]
   )
 
   const handleKeyUp = useCallback(
     (ev: KeyboardEvent) => {
-      const midiNumber = KeyMidiTable[ev.key]
-      const pressedKey = keyModels.find((v) => v.midiNumber === midiNumber)
+      if (ev.code === 'ArrowLeft' || ev.code === 'ArrowRight') {
+        setOctaveShift(0)
+      } else {
+        const midiNumber = KeyMidiTable[ev.key] + 12 * octaveShift
+        const pressedKey = keyModels.find((v) => v.midiNumber === midiNumber)
 
-      if (pressedKey) {
-        pressedKey.pressed = false
-        refPianoKeys.current[midiNumber - START_MIDI_KEY].color.set(
-          keyModels[midiNumber - START_MIDI_KEY].isWhiteKey()
-            ? 'white'
-            : 'black'
-        )
+        if (pressedKey) {
+          pressedKey.pressed = false
+          refPianoKeys.current[midiNumber - START_MIDI_KEY].color.set(
+            keyModels[midiNumber - START_MIDI_KEY].isWhiteKey()
+              ? 'white'
+              : 'black'
+          )
 
-        pianoPlayer.stop(midiNumber)
+          pianoPlayer.stop(midiNumber)
 
-        if (handleMidiNoteUp) {
-          handleMidiNoteUp(pressedKey.midiNumber, 80)
+          if (handleMidiNoteUp) {
+            handleMidiNoteUp(pressedKey.midiNumber, 80)
+          }
         }
       }
     },
-    [handleMidiNoteUp, refPianoKeys]
+    [handleMidiNoteUp, octaveShift]
   )
 
   useEffect(() => {

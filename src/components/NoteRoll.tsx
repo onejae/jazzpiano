@@ -10,6 +10,7 @@ import { useMidiControl } from '../providers/MidiControl'
 import { TransportPanel } from './TransportPanel'
 import { useTransport } from '@providers/TransportProvider'
 import { keyModels } from '@libs/midiControl'
+import { KEY_NUM, START_MIDI_KEY } from '@constants/keys'
 
 interface PianoRollProps {
   noteEvents: NoteEvent[]
@@ -27,6 +28,7 @@ interface RenderInfo {
   indexFrom: number
   blockRail: { [key: string]: Block[] }
   status: 'INIT' | 'LOADED' | 'PLAYING'
+  pressedMidiKeys: number[]
 }
 
 interface ScoreCriterion {
@@ -45,8 +47,14 @@ const PianoRoll = (props: PianoRollProps) => {
   const refNoteBlocks = Array.from({ length: 10000 }, () =>
     useRef<THREE.MeshStandardMaterial>(null!)
   )
-  const { setHandleMidiNoteDown, handlePreviewNoteDown, handlePreviewNoteUp } =
-    useMidiControl()
+
+  const refRailMaterials = useRef({})
+  const {
+    setHandleMidiNoteDown,
+    setHandleMidiNoteUp,
+    handlePreviewNoteDown,
+    handlePreviewNoteUp,
+  } = useMidiControl()
   const { playingState, playingMode, railAngle } = useTransport()
 
   const renderInfo = useRef<RenderInfo>({
@@ -54,6 +62,7 @@ const PianoRoll = (props: PianoRollProps) => {
     indexFrom: 0,
     blockRail: {},
     status: 'INIT',
+    pressedMidiKeys: [],
   })
 
   const scoreUserTouch = (block: Block, timing: number) => {
@@ -72,26 +81,30 @@ const PianoRoll = (props: PianoRollProps) => {
 
   useEffect(() => {
     setHandleMidiNoteDown(() => (midiNumber: number) => {
+      if (renderInfo.current.pressedMidiKeys.includes(midiNumber) === false) {
+        renderInfo.current.pressedMidiKeys.push(midiNumber)
+        console.log(renderInfo.current.pressedMidiKeys)
+      }
       if (
         !(midiNumber in renderInfo.current.blockRail) ||
         renderInfo.current.blockRail[midiNumber].length === 0
       )
         return
       const block = renderInfo.current.blockRail[midiNumber][0]
-
       // score the touch
       const score = scoreUserTouch(block, renderInfo.current.timer)
       console.log(score)
       // end of scoring
-
-      // color the rail
-      // end of coloring
-
       if (block.noteEvent[0] <= renderInfo.current.timer) {
         renderInfo.current.blockRail[midiNumber].shift()
       }
     })
-  }, [setHandleMidiNoteDown])
+    setHandleMidiNoteUp(() => (midiNumber: number) => {
+      renderInfo.current.pressedMidiKeys =
+        renderInfo.current.pressedMidiKeys.filter((v) => v != midiNumber)
+      refRailMaterials.current[midiNumber].color.set(0xffffff)
+    })
+  }, [setHandleMidiNoteDown, setHandleMidiNoteUp])
 
   const generateBlockRail = useCallback(() => {
     renderInfo.current.blockRail = {}
@@ -164,8 +177,19 @@ const PianoRoll = (props: PianoRollProps) => {
   const Background = () => {
     const lanes = []
 
+    useFrame((_state, delta) => {
+      // color the rail
+      renderInfo.current.pressedMidiKeys.forEach((v, idx) => {
+        refRailMaterials.current[v].color.set(0xff0000)
+      })
+      // end of coloring
+    })
+
     keyModels.forEach((v, idx) => {
       const renderSpace = KeyRenderSpace[v.midiNumber]
+
+      const geometry = new THREE.BoxGeometry(renderSpace.w, 100, renderSpace.d)
+      const lineGeometry = new THREE.EdgesGeometry(geometry)
 
       lanes.push(
         <mesh
@@ -174,12 +198,22 @@ const PianoRoll = (props: PianoRollProps) => {
           frustumCulled
         >
           <boxGeometry args={[renderSpace.w, 100, renderSpace.d]} />
+          <lineSegments args={[lineGeometry]}>
+            <lineBasicMaterial
+              color={0x000000}
+              clippingPlanes={[
+                new THREE.Plane(new THREE.Vector3(0, 1, -1), 1.73),
+              ]}
+            />
+          </lineSegments>
           <meshStandardMaterial
-            color={v.isWhiteKey() ? 0x332e30 : 0x332e30}
+            // visible={false}
+            // color={v.isWhiteKey() ? 0x332e30 : 0x332e30}
             clippingPlanes={[
               new THREE.Plane(new THREE.Vector3(0, 1, -1), 1.73),
             ]}
-            side={THREE.FrontSide}
+            // side={THREE.FrontSide}
+            ref={(ref) => (refRailMaterials.current[v.midiNumber] = ref)}
           />
         </mesh>
       )
@@ -277,8 +311,8 @@ const PianoRoll = (props: PianoRollProps) => {
           }}
         >
           <Suspense>
-            <ambientLight position={[10, 0, 0]} intensity={0.3} />
-            <pointLight position={[-3, 0, 300]} intensity={3.3} />
+            <ambientLight position={[2, 0, 0]} intensity={0.3} />
+            <pointLight position={[-3, 0, 0]} intensity={3.3} />
 
             <group
               scale={[1, 1, 1]}

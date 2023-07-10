@@ -61,7 +61,9 @@ export const AudioDropzone = (audioProps: {
                   }}
                   InputProps={{
                     endAdornment: (
-                      <Button onClick={audioProps.onYoutubeLink}>
+                      <Button
+                        onClick={() => audioProps.onYoutubeLink(youtubeLink)}
+                      >
                         Process
                       </Button>
                     ),

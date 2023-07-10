@@ -9,17 +9,16 @@ import PianoRoll from '@components/NoteRoll'
 import { MidiControlProvider } from '@providers/MidiControl'
 import { TransportProvider } from '@providers/TransportProvider'
 import { RealPiano } from '@components/RealPiano'
-import { AudioDropzone, useAudioDropzone } from '@components/AudioDropzone'
+import { AudioDropzone } from '@components/AudioDropzone'
 
 import { Midi } from '@tonejs/midi'
 
 type ROLLSTATE = 'INIT' | 'PLAYING'
 
 const YoutubePractice = () => {
-  const { youtubeLink } = useAudioDropzone()
   const [noteEvents, setNoteEvents] = useState<NoteEvent[] | null>(null)
   const [_rollState, setRollState] = useState<ROLLSTATE>('INIT')
-  const handleYoutubeLink = useCallback(async () => {
+  const handleYoutubeLink = useCallback(async (youtubeLink: string) => {
     try {
       const response = await getMidiFromYoutubeLink({ link: youtubeLink })
 
@@ -39,7 +38,7 @@ const YoutubePractice = () => {
     } catch (error) {
       alert(error)
     }
-  }, [youtubeLink])
+  }, [])
 
   const handleDropFile = useCallback((files: []) => {
     const reader = new FileReader()

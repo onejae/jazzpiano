@@ -84,6 +84,9 @@ const PianoRoll = (props: PianoRollProps) => {
       console.log(score)
       // end of scoring
 
+      // color the rail
+      // end of coloring
+
       if (block.noteEvent[0] <= renderInfo.current.timer) {
         renderInfo.current.blockRail[midiNumber].shift()
       }
@@ -172,7 +175,7 @@ const PianoRoll = (props: PianoRollProps) => {
         >
           <boxGeometry args={[renderSpace.w, 100, renderSpace.d]} />
           <meshStandardMaterial
-            color={v.isWhiteKey() ? 0x094782 : 0xffac00}
+            color={v.isWhiteKey() ? 0x332e30 : 0x332e30}
             clippingPlanes={[
               new THREE.Plane(new THREE.Vector3(0, 1, -1), 1.73),
             ]}

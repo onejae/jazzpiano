@@ -8,7 +8,8 @@ import { TransportProvider } from '@providers/TransportProvider'
 import { RealPiano } from '@components/RealPiano'
 import { AudioDropzone, useAudioDropzone } from '@components/AudioDropzone'
 
-import { Midi } from '@tonejs/midi'
+import { Midi, Track } from '@tonejs/midi'
+import { EXCLUDE_INSTRUMENT_FAMILIES } from '@constants/midi'
 
 type ROLLSTATE = 'INIT' | 'PLAYING'
 
@@ -45,7 +46,11 @@ const YoutubePractice = () => {
 
       const midi = new Midi(buf)
 
-      midi.tracks.forEach((t) => console.log(t))
+      midi.tracks.forEach((t: Track) => {
+        if (EXCLUDE_INSTRUMENT_FAMILIES.includes(t.instrument.family)) {
+          console.log(t.instrument.family)
+        }
+      })
     }
     reader.readAsArrayBuffer(files[0])
   }, [])

@@ -15,7 +15,7 @@ import { Midi } from '@tonejs/midi'
 
 type ROLLSTATE = 'INIT' | 'PLAYING'
 
-const YoutubePractice = () => {
+const Playground = () => {
   const [noteEvents, setNoteEvents] = useState<NoteEvent[] | null>(null)
   const [_rollState, setRollState] = useState<ROLLSTATE>('INIT')
   const handleYoutubeLink = useCallback(async (youtubeLink: string) => {
@@ -72,4 +72,4 @@ const YoutubePractice = () => {
   )
 }
 
-export default YoutubePractice
+export default Playground

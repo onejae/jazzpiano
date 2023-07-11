@@ -2,7 +2,7 @@ import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import MainLayout from '@providers/MainLayout'
 import TwoFiveOne from '@pages/TwoFiveOne'
 import MajorScale from '@pages/Scale'
-import YoutubePractice from '@pages/YoutubePractice'
+import Playground from '@pages/Playground'
 import axios from 'axios'
 
 const baseURL = import.meta.env.VITE_API_URL
@@ -21,7 +21,7 @@ const router = createBrowserRouter([
       {
         index: true,
         path: 'youtubepractice',
-        element: <YoutubePractice />,
+        element: <Playground />,
       },
       {
         path: 'scale',

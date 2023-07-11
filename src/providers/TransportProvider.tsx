@@ -1,3 +1,4 @@
+import { DEFAULT_ANGLE } from '@constants/view'
 import {
   Dispatch,
   PropsWithChildren,
@@ -28,7 +29,7 @@ export const useTransport = () => {
 export const TransportProvider = (props: PropsWithChildren) => {
   const [playingState, setPlayingState] = useState<PlayingState>('stopped')
   const [playingMode, setPlayingMode] = useState<PlayingMode>('preview')
-  const [railAngle, setRailAngle] = useState(-1.2)
+  const [railAngle, setRailAngle] = useState(DEFAULT_ANGLE)
 
   return (
     <transportContext.Provider

@@ -154,7 +154,11 @@ const MainLayout = () => {
   const [itemList, setItmeList] = useState<MenuItem[]>([
     {
       displayName: 'Playground',
-      link: '/youtubepractice',
+      link: '/playground',
+    },
+    {
+      displayName: 'Game',
+      link: '/game',
     },
     {
       displayName: 'Scale',

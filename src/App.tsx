@@ -4,6 +4,7 @@ import TwoFiveOne from '@pages/TwoFiveOne'
 import MajorScale from '@pages/Scale'
 import Playground from '@pages/Playground'
 import axios from 'axios'
+import ImprovisationGame from '@pages/ImprovisationGame'
 
 const baseURL = import.meta.env.VITE_API_URL
 
@@ -19,9 +20,12 @@ const router = createBrowserRouter([
         element: <TwoFiveOne />,
       },
       {
-        index: true,
-        path: 'youtubepractice',
+        path: 'playground',
         element: <Playground />,
+      },
+      {
+        path: 'game',
+        element: <ImprovisationGame />,
       },
       {
         path: 'scale',

@@ -9,9 +9,18 @@ import {
 import { PlayingMode, useTransport } from '@providers/TransportProvider'
 import { useCallback } from 'react'
 
-export const TransportPanel = () => {
-  const { playingState, setPlayingState, setPlayingMode, setRailAngle } =
-    useTransport()
+interface TransportPanelProps {
+  onAngleChange?: (angle: number) => void
+}
+
+export const TransportPanel = (props: TransportPanelProps) => {
+  const {
+    playingState,
+    setPlayingState,
+    setPlayingMode,
+    setRailAngle,
+    railAngle,
+  } = useTransport()
   const handlePlayButton = useCallback(() => {
     setPlayingState((current) => (current === 'playing' ? 'paused' : 'playing'))
   }, [setPlayingState])
@@ -27,6 +36,18 @@ export const TransportPanel = () => {
     [setPlayingMode]
   )
 
+  const handleAngleIncrease = useCallback(() => {
+    const newAngle = railAngle + 0.1
+    setRailAngle(newAngle)
+    if (props.onAngleChange) props.onAngleChange(newAngle)
+  }, [props, railAngle, setRailAngle])
+
+  const handleAngleDecrease = useCallback(() => {
+    const newAngle = railAngle - 0.1
+    setRailAngle(newAngle)
+    if (props.onAngleChange) props.onAngleChange(newAngle)
+  }, [props, railAngle, setRailAngle])
+
   return (
     <Box sx={{ backgroundColor: 'white', display: 'flex' }}>
       <Box flexGrow={1}>
@@ -40,8 +61,8 @@ export const TransportPanel = () => {
         <Button>{'>>'}</Button>
       </Box>
       <Box flexGrow={1}>
-        <Button onClick={() => setRailAngle((c) => (c -= 0.1))}>Up</Button>
-        <Button onClick={() => setRailAngle((c) => (c += 0.1))}>Down</Button>
+        <Button onClick={handleAngleDecrease}>Up</Button>
+        <Button onClick={handleAngleIncrease}>Down</Button>
       </Box>
       <Box>
         <FormGroup>

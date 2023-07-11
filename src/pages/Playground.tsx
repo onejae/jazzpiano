@@ -7,13 +7,15 @@ import {
 import { NoteEvent } from 'types/midi'
 import PianoRoll from '@components/NoteRoll'
 import { MidiControlProvider } from '@providers/MidiControl'
-import { TransportProvider } from '@providers/TransportProvider'
+import { TransportProvider, useTransport } from '@providers/TransportProvider'
 import { RealPiano } from '@components/RealPiano'
 import { AudioDropzone } from '@components/AudioDropzone'
 
 import { Midi } from '@tonejs/midi'
 import { Canvas } from '@react-three/fiber'
 import { TransportPanel } from '@components/TransportPanel'
+import { VirtualPiano } from '@components/VirtualPiano'
+import { DEFAULT_ANGLE } from '@constants/view'
 
 type ROLLSTATE = 'INIT' | 'PLAYING'
 
@@ -56,6 +58,8 @@ const Playground = () => {
     if (files.length > 0) reader.readAsArrayBuffer(files[0])
   }, [])
 
+  const [angle, setAngle] = useState(DEFAULT_ANGLE)
+
   return (
     <Box display="flex" flexDirection={'column'}>
       <Box flexGrow={1}>
@@ -85,14 +89,23 @@ const Playground = () => {
                   far: 200,
                 }}
               >
+                <ambientLight position={[2, 0, 0]} intensity={0.3} />
+                <pointLight position={[-3, 0, 0]} intensity={3.3} />
                 <MidiControlProvider>
-                  <PianoRoll noteEvents={noteEvents || []} />
-                  <RealPiano />
+                  <group
+                    scale={[1, 1, 1]}
+                    rotation={[angle, 0, 0]}
+                    position={[0, -3.5, 0]}
+                  >
+                    <PianoRoll noteEvents={noteEvents || []} />
+                    <VirtualPiano />
+                    <RealPiano />
+                  </group>
                 </MidiControlProvider>
               </Canvas>
             </div>
           </div>
-          <TransportPanel />
+          <TransportPanel onAngleChange={(angle) => setAngle(angle)} />
         </TransportProvider>
       </Box>
     </Box>

@@ -50,7 +50,7 @@ const PianoRoll = (props: PianoRollProps) => {
     handlePreviewNoteDown,
     handlePreviewNoteUp,
   } = useMidiControl()
-  const { playingState, playingMode, railAngle } = useTransport()
+  const { playingState, playingMode } = useTransport()
 
   const renderInfo = useRef<RenderInfo>({
     timer: 0,
@@ -285,18 +285,8 @@ const PianoRoll = (props: PianoRollProps) => {
 
   return (
     <Suspense>
-      <ambientLight position={[2, 0, 0]} intensity={0.3} />
-      <pointLight position={[-3, 0, 0]} intensity={3.3} />
-
-      <group
-        scale={[1, 1, 1]}
-        rotation={[railAngle, 0, 0]}
-        position={[0, -3.5, 0]}
-      >
-        <Background />
-        <NoteRender />
-        <VirtualPiano />
-      </group>
+      <Background />
+      <NoteRender />
     </Suspense>
   )
 }

@@ -4,7 +4,7 @@ import { START_MIDI_KEY } from '@constants/keys'
 import { KeyModel, keyModels } from '@libs/midiControl'
 import { SplendidGrandPiano } from 'smplr'
 import { useMidiControl } from '@providers/MidiControl'
-import { OrbitControls, Stats, Text } from '@react-three/drei'
+import { Text } from '@react-three/drei'
 
 const KeyMidiTable: { [key: string]: number } = {
   z: 48,

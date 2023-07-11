@@ -173,9 +173,9 @@ const PianoRoll = (props: PianoRollProps) => {
   const Background = () => {
     const lanes = []
 
-    useFrame((_state, delta) => {
+    useFrame((_state, _delta) => {
       // color the rail
-      renderInfo.current.pressedMidiKeys.forEach((v, idx) => {
+      renderInfo.current.pressedMidiKeys.forEach((v) => {
         refRailMaterials.current[v].color.set(0xff0000)
       })
       // end of coloring

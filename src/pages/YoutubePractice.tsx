@@ -40,7 +40,7 @@ const YoutubePractice = () => {
     }
   }, [])
 
-  const handleDropFile = useCallback((files: []) => {
+  const handleDropFile = useCallback((files: any[]) => {
     const reader = new FileReader()
     reader.onload = function (e) {
       const buf = e.target.result as ArrayBuffer
@@ -51,7 +51,7 @@ const YoutubePractice = () => {
 
       setNoteEvents(noteEvents)
     }
-    reader.readAsArrayBuffer(files[0])
+    if (files.length > 0) reader.readAsArrayBuffer(files[0])
   }, [])
 
   return (

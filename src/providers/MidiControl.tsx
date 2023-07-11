@@ -26,11 +26,6 @@ const useMidiControl = () => {
   return useContext(MidiControlContext)
 }
 
-interface MidiDeviceInfo {
-  idx: number
-  name: string
-}
-
 const MidiControlProvider = (props: PropsWithChildren) => {
   const [handleMidiNoteDown, setHandleMidiNoteDown] =
     useState<MidiNoteEventType>(() => () => {})

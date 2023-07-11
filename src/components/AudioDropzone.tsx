@@ -1,6 +1,6 @@
 import { Box, Button, TextField } from '@mui/material'
 import { useCallback, useState } from 'react'
-import Dropzone, { useDropzone } from 'react-dropzone'
+import Dropzone from 'react-dropzone'
 
 export const useAudioDropzone = () => {
   const [youtubeLink, setYoutubeLink] = useState('')

@@ -10,7 +10,6 @@ import { useMidiControl } from '../providers/MidiControl'
 import { TransportPanel } from './TransportPanel'
 import { useTransport } from '@providers/TransportProvider'
 import { keyModels } from '@libs/midiControl'
-import { KEY_NUM, START_MIDI_KEY } from '@constants/keys'
 
 interface PianoRollProps {
   noteEvents: NoteEvent[]
@@ -204,8 +203,6 @@ const PianoRoll = (props: PianoRollProps) => {
             />
           </lineSegments>
           <meshStandardMaterial
-            // visible={false}
-            // color={v.isWhiteKey() ? 0x332e30 : 0x332e30}
             clippingPlanes={[
               new THREE.Plane(new THREE.Vector3(0, 1, -1), 1.73),
             ]}

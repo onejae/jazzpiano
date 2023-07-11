@@ -1,13 +1,12 @@
 import * as THREE from 'three'
 import { NoteEvent } from 'types/midi'
 
-import { Canvas, useFrame } from '@react-three/fiber'
+import { useFrame } from '@react-three/fiber'
 
 import { Suspense, useCallback, useEffect, useMemo, useRef } from 'react'
 
 import { KeyRenderSpace, VirtualPiano } from '@components/VirtualPiano'
 import { useMidiControl } from '../providers/MidiControl'
-import { TransportPanel } from './TransportPanel'
 import { useTransport } from '@providers/TransportProvider'
 import { keyModels } from '@libs/midiControl'
 
@@ -285,43 +284,20 @@ const PianoRoll = (props: PianoRollProps) => {
   }
 
   return (
-    <div style={{ width: '100%', justifyContent: 'center', display: 'flex' }}>
-      <div
-        style={{
-          width: '100vw',
-          height: 'calc(60vh)',
-          backgroundColor: 'white',
-        }}
-      >
-        <Canvas
-          onCreated={({ gl }) => {
-            gl.localClippingEnabled = true
-          }}
-          camera={{
-            position: [0, 0, 13],
-            fov: 45,
-            near: 0.1,
-            far: 200,
-          }}
-        >
-          <Suspense>
-            <ambientLight position={[2, 0, 0]} intensity={0.3} />
-            <pointLight position={[-3, 0, 0]} intensity={3.3} />
+    <Suspense>
+      <ambientLight position={[2, 0, 0]} intensity={0.3} />
+      <pointLight position={[-3, 0, 0]} intensity={3.3} />
 
-            <group
-              scale={[1, 1, 1]}
-              rotation={[railAngle, 0, 0]}
-              position={[0, -3.5, 0]}
-            >
-              <Background />
-              <NoteRender />
-              <VirtualPiano />
-            </group>
-          </Suspense>
-        </Canvas>
-        <TransportPanel />
-      </div>
-    </div>
+      <group
+        scale={[1, 1, 1]}
+        rotation={[railAngle, 0, 0]}
+        position={[0, -3.5, 0]}
+      >
+        <Background />
+        <NoteRender />
+        <VirtualPiano />
+      </group>
+    </Suspense>
   )
 }
 

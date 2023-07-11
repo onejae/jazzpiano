@@ -12,6 +12,8 @@ import { RealPiano } from '@components/RealPiano'
 import { AudioDropzone } from '@components/AudioDropzone'
 
 import { Midi } from '@tonejs/midi'
+import { Canvas } from '@react-three/fiber'
+import { TransportPanel } from '@components/TransportPanel'
 
 type ROLLSTATE = 'INIT' | 'PLAYING'
 
@@ -62,10 +64,35 @@ const Playground = () => {
           onYoutubeLink={handleYoutubeLink}
         />
         <TransportProvider>
-          <MidiControlProvider>
-            <PianoRoll noteEvents={noteEvents || []} />
-            <RealPiano />
-          </MidiControlProvider>
+          <div
+            style={{ width: '100%', justifyContent: 'center', display: 'flex' }}
+          >
+            <div
+              style={{
+                width: '100vw',
+                height: 'calc(60vh)',
+                backgroundColor: 'white',
+              }}
+            >
+              <Canvas
+                onCreated={({ gl }) => {
+                  gl.localClippingEnabled = true
+                }}
+                camera={{
+                  position: [0, 0, 13],
+                  fov: 45,
+                  near: 0.1,
+                  far: 200,
+                }}
+              >
+                <MidiControlProvider>
+                  <PianoRoll noteEvents={noteEvents || []} />
+                  <RealPiano />
+                </MidiControlProvider>
+              </Canvas>
+            </div>
+          </div>
+          <TransportPanel />
         </TransportProvider>
       </Box>
     </Box>

@@ -1,3 +1,4 @@
+import { KEY_NUM, START_MIDI_KEY } from '@constants/keys'
 import { EXCLUDE_INSTRUMENT_FAMILIES } from '@constants/midi'
 import { Midi, Track } from '@tonejs/midi'
 import { Note } from '@tonejs/midi/dist/Note'
@@ -30,13 +31,17 @@ export const getNoteEventsFromTonejs = (midi: Midi): NoteEvent[] => {
   midi.tracks.forEach((t: Track) => {
     if (!EXCLUDE_INSTRUMENT_FAMILIES.includes(t.instrument.family)) {
       t.notes.forEach((note: Note) => {
-        noteEvents.push([
-          note.time,
-          note.time + note.duration,
-          note.midi,
-          note.velocity * 127,
-          false,
-        ])
+        if (
+          note.midi >= START_MIDI_KEY &&
+          note.midi <= START_MIDI_KEY + KEY_NUM - 1
+        )
+          noteEvents.push([
+            note.time,
+            note.time + note.duration,
+            note.midi,
+            note.velocity * 127,
+            false,
+          ])
       })
     }
   })

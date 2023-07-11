@@ -3,6 +3,7 @@ import { Box } from '@mui/material'
 import { MidiControlProvider } from '@providers/MidiControl'
 import { TransportProvider } from '@providers/TransportProvider'
 
+import { TransportGroup } from '@components/TransportGroup'
 import { TransportPanel } from '@components/TransportPanel'
 import { VirtualPiano } from '@components/VirtualPiano'
 import { Canvas } from '@react-three/fiber'
@@ -36,9 +37,10 @@ const ImprovisationGame = () => {
                 <ambientLight position={[2, 0, 0]} intensity={0.3} />
                 <pointLight position={[-3, 0, 0]} intensity={3.3} />
                 <MidiControlProvider>
-                  {/* <PianoRoll noteEvents={noteEvents || []} /> */}
-                  <RealPiano />
-                  <VirtualPiano />
+                  <TransportGroup>
+                    <RealPiano />
+                    <VirtualPiano />
+                  </TransportGroup>
                 </MidiControlProvider>
               </Canvas>
             </div>

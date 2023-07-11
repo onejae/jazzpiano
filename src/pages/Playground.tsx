@@ -1,21 +1,21 @@
+import { AudioDropzone } from '@components/AudioDropzone'
+import PianoRoll from '@components/NoteRoll'
+import { RealPiano } from '@components/RealPiano'
 import { Box } from '@mui/material'
-import { useCallback, useState } from 'react'
+import { MidiControlProvider } from '@providers/MidiControl'
+import { TransportProvider } from '@providers/TransportProvider'
 import {
   getMidiFromYoutubeLink,
   getNoteEventsFromTonejs,
 } from '@services/convertService'
+import { useCallback, useState } from 'react'
 import { NoteEvent } from 'types/midi'
-import PianoRoll from '@components/NoteRoll'
-import { MidiControlProvider } from '@providers/MidiControl'
-import { TransportProvider, useTransport } from '@providers/TransportProvider'
-import { RealPiano } from '@components/RealPiano'
-import { AudioDropzone } from '@components/AudioDropzone'
 
-import { Midi } from '@tonejs/midi'
-import { Canvas } from '@react-three/fiber'
+import { TransportGroup } from '@components/TransportGroup'
 import { TransportPanel } from '@components/TransportPanel'
 import { VirtualPiano } from '@components/VirtualPiano'
-import { DEFAULT_ANGLE } from '@constants/view'
+import { Canvas } from '@react-three/fiber'
+import { Midi } from '@tonejs/midi'
 
 type ROLLSTATE = 'INIT' | 'PLAYING'
 
@@ -58,8 +58,6 @@ const Playground = () => {
     if (files.length > 0) reader.readAsArrayBuffer(files[0])
   }, [])
 
-  const [angle, setAngle] = useState(DEFAULT_ANGLE)
-
   return (
     <Box display="flex" flexDirection={'column'}>
       <Box flexGrow={1}>
@@ -92,20 +90,16 @@ const Playground = () => {
                 <ambientLight position={[2, 0, 0]} intensity={0.3} />
                 <pointLight position={[-3, 0, 0]} intensity={3.3} />
                 <MidiControlProvider>
-                  <group
-                    scale={[1, 1, 1]}
-                    rotation={[angle, 0, 0]}
-                    position={[0, -3.5, 0]}
-                  >
+                  <TransportGroup>
                     <PianoRoll noteEvents={noteEvents || []} />
                     <VirtualPiano />
                     <RealPiano />
-                  </group>
+                  </TransportGroup>
                 </MidiControlProvider>
               </Canvas>
             </div>
           </div>
-          <TransportPanel onAngleChange={(angle) => setAngle(angle)} />
+          <TransportPanel />
         </TransportProvider>
       </Box>
     </Box>

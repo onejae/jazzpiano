@@ -44,10 +44,7 @@ const ScoreCriterionTable: ScoreCriterion = {
 
 const PianoRoll = (props: PianoRollProps) => {
   const ref = useRef<THREE.Group>(null!)
-  const refNoteBlocks = Array.from({ length: 10000 }, () =>
-    useRef<THREE.MeshStandardMaterial>(null!)
-  )
-
+  const refNoteBlocks = useRef({})
   const refRailMaterials = useRef({})
   const {
     setHandleMidiNoteDown,
@@ -148,7 +145,7 @@ const PianoRoll = (props: PianoRollProps) => {
             ]}
           />
           <meshStandardMaterial
-            ref={refNoteBlocks[idx]}
+            ref={(ref) => (refNoteBlocks.current[idx] = ref)}
             color={renderSpace.color}
             clippingPlanes={[
               new THREE.Plane(new THREE.Vector3(0, 1, -1), 1.73),
@@ -231,7 +228,7 @@ const PianoRoll = (props: PianoRollProps) => {
         const block = renderInfo.current.blockRail[keyName][0]
 
         if (block.noteEvent[0] <= renderInfo.current.timer) {
-          refNoteBlocks[block.idx].current.color.set(0xff0000)
+          refNoteBlocks.current[block.idx].color.set(0xff0000)
 
           if (!block.noteEvent[4]) {
             if (handlePreviewNoteDown && playingMode === 'preview')

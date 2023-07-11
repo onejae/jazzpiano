@@ -4,6 +4,7 @@ import { START_MIDI_KEY } from '@constants/keys'
 import { KeyModel, keyModels } from '@libs/midiControl'
 import { SplendidGrandPiano } from 'smplr'
 import { useMidiControl } from '@providers/MidiControl'
+import { OrbitControls, Stats, Text } from '@react-three/drei'
 
 const KeyMidiTable: { [key: string]: number } = {
   z: 48,
@@ -197,6 +198,15 @@ export const VirtualPiano = (props: ThreeElements['mesh']) => {
               }}
               color={key.isWhiteKey() ? 'white' : 'black'}
             ></meshStandardMaterial>
+            <Text
+              scale={[0.1, 0.1, 0.1]}
+              position={key.isWhiteKey() ? [0, -0.4, 0.13] : [0, -0.2, 0.13]}
+              color={key.isWhiteKey() ? 'black' : 'white'}
+              anchorX="center"
+              anchorY="middle"
+            >
+              {key.noteName}
+            </Text>
           </mesh>
         )
       })}{' '}

@@ -19,36 +19,33 @@ export const RealPiano = () => {
           console.log('WebMidi enabled!')
         }
       },
-    }).then()
+    }).then(() => {
+      WebMidi.inputs.forEach((input) => {
+        input.addListener(
+          'noteon',
+          (e: NoteMessageEvent & { data: number[] }) => {
+            const midiNumber = e.data[1]
+            const velocity = e.data[2]
+            if (handleMidiNoteDown) handleMidiNoteDown(midiNumber, velocity)
+            if (handlePreviewNoteDown)
+              handlePreviewNoteDown(midiNumber, velocity)
+          }
+        )
+        input.addListener(
+          'noteoff',
+          (e: NoteMessageEvent & { data: number[] }) => {
+            const midiNumber = e.data[1]
+            const velocity = e.data[2]
+            if (handleMidiNoteUp) handleMidiNoteUp(midiNumber, velocity)
+            if (handlePreviewNoteUp) handlePreviewNoteUp(midiNumber, velocity)
+          }
+        )
+      })
+    })
 
     return () => {
       WebMidi.disable()
     }
-  }, [])
-
-  useEffect(() => {
-    WebMidi.inputs.forEach((input) => {
-      input.addListener(
-        'noteon',
-        (e: NoteMessageEvent & { data: number[] }) => {
-          const midiNumber = e.data[1]
-          const velocity = e.data[2]
-          if (handleMidiNoteDown) handleMidiNoteDown(midiNumber, velocity)
-          if (handlePreviewNoteDown) handlePreviewNoteDown(midiNumber, velocity)
-        }
-      )
-      input.addListener(
-        'noteoff',
-        (e: NoteMessageEvent & { data: number[] }) => {
-          const midiNumber = e.data[1]
-          const velocity = e.data[2]
-          if (handleMidiNoteUp) handleMidiNoteUp(midiNumber, velocity)
-          if (handlePreviewNoteUp) handlePreviewNoteUp(midiNumber, velocity)
-        }
-      )
-    })
-
-    return () => {}
   }, [
     handleMidiNoteDown,
     handleMidiNoteUp,

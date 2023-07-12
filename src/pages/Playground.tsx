@@ -27,7 +27,6 @@ const Playground = () => {
       const response = await getMidiFromYoutubeLink({ link: youtubeLink })
 
       if (response.note_events) {
-        // just for debugging
         const noteEventsSorted = response.note_events.sort((a, b) => {
           if (a[0] > b[0]) return 1
           else if (a[0] === b[0]) return 0

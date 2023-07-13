@@ -15,12 +15,14 @@ export interface BlockInfo {
   key: string
   scaleType: string
   startFrom: number
+  endAt: number
 }
 
 interface GameContextType {
   gameState: GameState
   setGameState: Dispatch<SetStateAction<GameState>>
-  refBlocks: MutableRefObject<BlockInfo[]>
+  blocks: BlockInfo[]
+  setBlocks: Dispatch<SetStateAction<BlockInfo[]>>
   timer: MutableRefObject<number>
   lastBlockDropTime: MutableRefObject<number>
 }
@@ -33,7 +35,7 @@ export const useGame = () => {
 
 export const GameControlProvider = (props: PropsWithChildren) => {
   const [gameState, setGameState] = useState<GameState>('INIT')
-  const blocks = useRef<BlockInfo[]>([])
+  const [blocks, setBlocks] = useState<BlockInfo[]>([])
   const timer = useRef(0)
   const lastBlockDropTime = useRef(0)
 
@@ -42,7 +44,8 @@ export const GameControlProvider = (props: PropsWithChildren) => {
       value={{
         gameState: gameState,
         setGameState: setGameState,
-        refBlocks: blocks,
+        blocks: blocks,
+        setBlocks: setBlocks,
         timer: timer,
         lastBlockDropTime: lastBlockDropTime,
       }}

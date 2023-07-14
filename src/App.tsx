@@ -7,13 +7,17 @@ import axios from 'axios'
 import ImprovisationGame from '@pages/ImprovisationGame'
 import { MidiControlProvider } from '@providers/MidiControl'
 import { GameControlProvider } from '@providers/GameControlProvider'
+import { RealPiano } from '@components/RealPiano'
 
 const baseURL = import.meta.env.VITE_API_URL
 
 axios.defaults.baseURL = baseURL
 
 const wrapWithMidiControl = (el) => (
-  <MidiControlProvider>{el}</MidiControlProvider>
+  <MidiControlProvider>
+    {el}
+    <RealPiano />
+  </MidiControlProvider>
 )
 
 const wrapWithGameControl = (el) => (

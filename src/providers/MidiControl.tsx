@@ -1,21 +1,24 @@
-import { createContext, useContext, useState } from 'react'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useRef,
+  useState,
+  MutableRefObject,
+} from 'react'
 import { PropsWithChildren } from 'react'
 
 type MidiNoteEventType = (midinumber: number, velocity: number) => any
 interface MidiControlContextType {
-  handleMidiNoteDown: MidiNoteEventType
-  setHandleMidiNoteDown: React.Dispatch<React.SetStateAction<MidiNoteEventType>>
-  handleMidiNoteUp: MidiNoteEventType
-  setHandleMidiNoteUp: React.Dispatch<React.SetStateAction<MidiNoteEventType>>
+  refHandleMidiNoteDown: MutableRefObject<MidiNoteEventType>
+  setHandleMidiNoteDown: (handler: MidiNoteEventType) => void
+  refHandleMidiNoteUp: MutableRefObject<MidiNoteEventType>
+  setHandleMidiNoteUp: (handler: MidiNoteEventType) => void
 
-  handlePreviewNoteDown: MidiNoteEventType
-  setHandlePreviewNoteDown: React.Dispatch<
-    React.SetStateAction<MidiNoteEventType>
-  >
-  handlePreviewNoteUp: MidiNoteEventType
-  setHandlePreviewNoteUp: React.Dispatch<
-    React.SetStateAction<MidiNoteEventType>
-  >
+  refHandlePreviewNoteDown: MutableRefObject<MidiNoteEventType>
+  setHandlePreviewNoteDown: (handler: MidiNoteEventType) => void
+  refHandlePreviewNoteUp: MutableRefObject<MidiNoteEventType>
+  setHandlePreviewNoteUp: (handler: MidiNoteEventType) => void
 
   midiIdx: number
   setMidiIdx: React.Dispatch<React.SetStateAction<number>>
@@ -27,31 +30,50 @@ const useMidiControl = () => {
 }
 
 const MidiControlProvider = (props: PropsWithChildren) => {
-  const [handleMidiNoteDown, setHandleMidiNoteDown] =
-    useState<MidiNoteEventType>(() => () => {})
+  const refHandleMidiNoteDown = useRef<MidiNoteEventType>()
+  const setHandleMidiNoteDown = useCallback((handler: MidiNoteEventType) => {
+    refHandleMidiNoteDown.current = handler
+  }, [])
 
-  const [handleMidiNoteUp, setHandleMidiNoteUp] = useState<MidiNoteEventType>(
-    () => () => {}
-  )
+  const refHandleMidiNoteUp = useRef<MidiNoteEventType>()
+  const setHandleMidiNoteUp = useCallback((handler: MidiNoteEventType) => {
+    refHandleMidiNoteUp.current = handler
+  }, [])
+  // const [handleMidiNoteDown, setHandleMidiNoteDown] =
+  // useState<MidiNoteEventType>(() => () => {})
 
-  const [handlePreviewNoteDown, setHandlePreviewNoteDown] =
-    useState<MidiNoteEventType>(() => () => {})
+  // const [handleMidiNoteUp, setHandleMidiNoteUp] = useState<MidiNoteEventType>(
+  //   () => () => {}
+  // )
 
-  const [handlePreviewNoteUp, setHandlePreviewNoteUp] =
-    useState<MidiNoteEventType>(() => () => {})
+  const refHandlePreviewNoteDown = useRef<MidiNoteEventType>()
+  const setHandlePreviewNoteDown = useCallback((handler: MidiNoteEventType) => {
+    refHandlePreviewNoteDown.current = handler
+  }, [])
+
+  const refHandlePreviewNoteUp = useRef<MidiNoteEventType>()
+  const setHandlePreviewNoteUp = useCallback((handler: MidiNoteEventType) => {
+    refHandlePreviewNoteUp.current = handler
+  }, [])
+
+  // const [handlePreviewNoteDown, setHandlePreviewNoteDown] =
+  // useState<MidiNoteEventType>(() => () => {})
+
+  // const [handlePreviewNoteUp, setHandlePreviewNoteUp] =
+  // useState<MidiNoteEventType>(() => () => {})
 
   const [midiIdx, setMidiIdx] = useState(-1)
 
   return (
     <MidiControlContext.Provider
       value={{
-        handleMidiNoteDown: handleMidiNoteDown,
+        refHandleMidiNoteDown: refHandleMidiNoteDown,
         setHandleMidiNoteDown: setHandleMidiNoteDown,
-        handleMidiNoteUp: handleMidiNoteUp,
+        refHandleMidiNoteUp: refHandleMidiNoteUp,
         setHandleMidiNoteUp: setHandleMidiNoteUp,
-        handlePreviewNoteDown: handlePreviewNoteDown,
+        refHandlePreviewNoteDown: refHandlePreviewNoteDown,
         setHandlePreviewNoteDown: setHandlePreviewNoteDown,
-        handlePreviewNoteUp: handlePreviewNoteUp,
+        refHandlePreviewNoteUp: refHandlePreviewNoteUp,
         setHandlePreviewNoteUp: setHandlePreviewNoteUp,
         midiIdx: midiIdx,
         setMidiIdx: setMidiIdx,

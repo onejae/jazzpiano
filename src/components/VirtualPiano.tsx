@@ -87,8 +87,8 @@ for (let lastX = START_X, i = 0; i < keyModels.length; i++) {
 export const VirtualPiano = (props: ThreeElements['mesh']) => {
   const refPianoKeys = useRef([])
   const {
-    handleMidiNoteDown,
-    handleMidiNoteUp,
+    refHandleMidiNoteDown,
+    refHandleMidiNoteUp,
     setHandlePreviewNoteDown,
     setHandlePreviewNoteUp,
   } = useMidiControl()
@@ -115,13 +115,13 @@ export const VirtualPiano = (props: ThreeElements['mesh']) => {
             velocity: 80,
           })
 
-          if (handleMidiNoteDown) {
-            handleMidiNoteDown(pressedKey.midiNumber, 80)
+          if (refHandleMidiNoteDown.current) {
+            refHandleMidiNoteDown.current(pressedKey.midiNumber, 80)
           }
         }
       }
     },
-    [handleMidiNoteDown, octaveShift]
+    [octaveShift, refHandleMidiNoteDown]
   )
 
   const handleKeyUp = useCallback(
@@ -142,17 +142,17 @@ export const VirtualPiano = (props: ThreeElements['mesh']) => {
 
           pianoPlayer.stop(midiNumber)
 
-          if (handleMidiNoteUp) {
-            handleMidiNoteUp(pressedKey.midiNumber, 80)
+          if (refHandleMidiNoteUp.current) {
+            refHandleMidiNoteUp.current(pressedKey.midiNumber, 80)
           }
         }
       }
     },
-    [handleMidiNoteUp, octaveShift]
+    [refHandleMidiNoteUp, octaveShift]
   )
 
   useEffect(() => {
-    setHandlePreviewNoteDown(() => (m) => {
+    setHandlePreviewNoteDown((m) => {
       refPianoKeys.current[m - START_MIDI_KEY].color.set('blue')
 
       pianoPlayer.start({
@@ -161,7 +161,7 @@ export const VirtualPiano = (props: ThreeElements['mesh']) => {
       })
     })
 
-    setHandlePreviewNoteUp(() => (m) => {
+    setHandlePreviewNoteUp((m) => {
       refPianoKeys.current[m - START_MIDI_KEY].color.set(
         keyModels[m - START_MIDI_KEY].isWhiteKey() ? 'white' : 'black'
       )

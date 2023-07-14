@@ -1,5 +1,6 @@
 import { KEY_NUM, START_MIDI_KEY } from '@constants/keys'
 import { KeyName, PitchIndex } from '@constants/notes'
+import { ScaleIndexTable, ScaleName } from '@constants/scales'
 
 export class KeyModel {
   midiNumber: number
@@ -76,6 +77,16 @@ export const keyModels = Array.from({ length: KEY_NUM }).map(
 )
 
 export const keyModelsByMidi: { [midiNumber: number]: KeyModel } = {}
+
+export const getMidiNumbersFromKeyScale = (
+  key: KeyName,
+  scale: ScaleName
+): number[] => {
+  const indexes = ScaleIndexTable[scale]
+
+  // console.log(scale, indexes)
+  return []
+}
 
 keyModels.forEach((keyModel) => {
   keyModelsByMidi[keyModel.midiNumber] = keyModel

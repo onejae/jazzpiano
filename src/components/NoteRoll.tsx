@@ -47,8 +47,8 @@ const PianoRoll = (props: PianoRollProps) => {
   const {
     setHandleMidiNoteDown,
     setHandleMidiNoteUp,
-    handlePreviewNoteDown,
-    handlePreviewNoteUp,
+    refHandlePreviewNoteDown,
+    refHandlePreviewNoteUp,
   } = useMidiControl()
   const { playingState, playingMode } = useTransport()
 
@@ -205,6 +205,7 @@ const PianoRoll = (props: PianoRollProps) => {
               new THREE.Plane(new THREE.Vector3(0, 1, -1), 1.73),
             ]}
             // side={THREE.FrontSide}
+            color={0xff0000}
             ref={(ref) => (refRailMaterials.current[v.midiNumber] = ref)}
           />
         </mesh>
@@ -226,15 +227,21 @@ const PianoRoll = (props: PianoRollProps) => {
           refNoteBlocks.current[block.idx].color.set(0xff0000)
 
           if (!block.noteEvent[4]) {
-            if (handlePreviewNoteDown && playingMode === 'preview')
-              handlePreviewNoteDown(block.noteEvent[2], block.noteEvent[3])
+            if (refHandlePreviewNoteDown.current && playingMode === 'preview')
+              refHandlePreviewNoteDown.current(
+                block.noteEvent[2],
+                block.noteEvent[3]
+              )
             block.noteEvent[4] = true
           }
         }
 
         if (block.noteEvent[1] <= renderInfo.current.timer) {
-          if (handlePreviewNoteUp && playingMode === 'preview')
-            handlePreviewNoteUp(block.noteEvent[2], block.noteEvent[3])
+          if (refHandlePreviewNoteUp.current && playingMode === 'preview')
+            refHandlePreviewNoteUp.current(
+              block.noteEvent[2],
+              block.noteEvent[3]
+            )
           renderInfo.current.blockRail[keyName].shift()
         }
       })

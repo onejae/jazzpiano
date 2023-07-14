@@ -4,10 +4,10 @@ import { NoteMessageEvent, WebMidi } from 'webmidi'
 
 export const RealPiano = () => {
   const {
-    handleMidiNoteDown,
-    handleMidiNoteUp,
-    handlePreviewNoteDown,
-    handlePreviewNoteUp,
+    refHandleMidiNoteDown,
+    refHandleMidiNoteUp,
+    refHandlePreviewNoteDown,
+    refHandlePreviewNoteUp,
   } = useMidiControl()
 
   useEffect(() => {
@@ -20,37 +20,47 @@ export const RealPiano = () => {
         }
       },
     }).then(() => {
-      WebMidi.inputs.forEach((input) => {
+      WebMidi.inputs.forEach((input, idx) => {
+        input.removeListener('noteon')
         input.addListener(
           'noteon',
           (e: NoteMessageEvent & { data: number[] }) => {
             const midiNumber = e.data[1]
             const velocity = e.data[2]
-            if (handleMidiNoteDown) handleMidiNoteDown(midiNumber, velocity)
-            if (handlePreviewNoteDown)
-              handlePreviewNoteDown(midiNumber, velocity)
+            if (refHandleMidiNoteDown.current)
+              refHandleMidiNoteDown.current(midiNumber, velocity)
+            if (refHandlePreviewNoteDown.current)
+              refHandlePreviewNoteDown.current(midiNumber, velocity)
           }
         )
+
+        input.removeListener('noteoff')
         input.addListener(
           'noteoff',
           (e: NoteMessageEvent & { data: number[] }) => {
             const midiNumber = e.data[1]
             const velocity = e.data[2]
-            if (handleMidiNoteUp) handleMidiNoteUp(midiNumber, velocity)
-            if (handlePreviewNoteUp) handlePreviewNoteUp(midiNumber, velocity)
+            if (refHandleMidiNoteUp.current)
+              refHandleMidiNoteUp.current(midiNumber, velocity)
+            if (refHandlePreviewNoteUp.current)
+              refHandlePreviewNoteUp.current(midiNumber, velocity)
           }
         )
       })
     })
 
     return () => {
-      WebMidi.disable()
+      WebMidi.inputs.forEach((input) => {
+        input.removeListener('noteon')
+        input.removeListener('noteoff')
+      })
+      WebMidi.disable().then()
     }
   }, [
-    handleMidiNoteDown,
-    handleMidiNoteUp,
-    handlePreviewNoteDown,
-    handlePreviewNoteUp,
+    refHandleMidiNoteDown,
+    refHandleMidiNoteUp,
+    refHandlePreviewNoteDown,
+    refHandlePreviewNoteUp,
   ])
 
   return <></>

@@ -1,10 +1,10 @@
 import { KEY_NUM, START_MIDI_KEY } from '@constants/keys'
-import { PitchIndex } from '@constants/notes'
+import { KeyName, PitchIndex } from '@constants/notes'
 
 export class KeyModel {
   midiNumber: number
   octave: number
-  noteName: string
+  noteName: KeyName
   pressed: boolean
 
   constructor(midiNumber: number) {
@@ -18,7 +18,10 @@ export class KeyModel {
     return Math.floor(midiNumber / 12 - 1)
   }
 
-  static getNoteFromMidiNumber = (midiNumber: number): string => {
+  static getNoteFromMidiNumber = (
+    midiNumber: number,
+    withOctave = true
+  ): KeyName => {
     const PitchName = [
       'C',
       'C#',
@@ -34,10 +37,12 @@ export class KeyModel {
       'B',
     ]
 
-    const octave = KeyModel.getOctaveFromMidiNumber(midiNumber)
     const index = midiNumber % 12
 
-    return PitchName[index] + octave.toString()
+    return (PitchName[index] +
+      (withOctave
+        ? KeyModel.getOctaveFromMidiNumber(midiNumber).toString()
+        : '')) as KeyName
   }
 
   getPitchIndex(): PitchIndex {

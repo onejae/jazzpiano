@@ -5,10 +5,20 @@ import MajorScale from '@pages/Scale'
 import Playground from '@pages/Playground'
 import axios from 'axios'
 import ImprovisationGame from '@pages/ImprovisationGame'
+import { MidiControlProvider } from '@providers/MidiControl'
+import { GameControlProvider } from '@providers/GameControlProvider'
 
 const baseURL = import.meta.env.VITE_API_URL
 
 axios.defaults.baseURL = baseURL
+
+const wrapWithMidiControl = (el) => (
+  <MidiControlProvider>{el}</MidiControlProvider>
+)
+
+const wrapWithGameControl = (el) => (
+  <GameControlProvider>{el}</GameControlProvider>
+)
 
 const router = createBrowserRouter([
   {
@@ -25,7 +35,9 @@ const router = createBrowserRouter([
       },
       {
         path: 'game',
-        element: <ImprovisationGame />,
+        element: wrapWithGameControl(
+          wrapWithMidiControl(<ImprovisationGame />)
+        ),
       },
       {
         path: 'scale',

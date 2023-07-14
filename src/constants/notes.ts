@@ -1,3 +1,21 @@
+export type KeyName =
+  | 'C'
+  | 'C#'
+  | 'Db'
+  | 'D'
+  | 'D#'
+  | 'Eb'
+  | 'E'
+  | 'F'
+  | 'F#'
+  | 'Gb'
+  | 'G'
+  | 'G#'
+  | 'Ab'
+  | 'A'
+  | 'A#'
+  | 'Bb'
+
 export enum PitchIndex {
   C = 0,
   C_SHARP = 1,

@@ -78,7 +78,6 @@ const PianoRoll = (props: PianoRollProps) => {
     setHandleMidiNoteDown(() => (midiNumber: number) => {
       if (renderInfo.current.pressedMidiKeys.includes(midiNumber) === false) {
         renderInfo.current.pressedMidiKeys.push(midiNumber)
-        console.log(renderInfo.current.pressedMidiKeys)
       }
       if (
         !(midiNumber in renderInfo.current.blockRail) ||

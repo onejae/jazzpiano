@@ -1,6 +1,7 @@
 import { KeyName, KeyNameIndex } from '@constants/notes'
-import { ScaleIndexTable, ScaleName } from '@constants/scales'
-import { getMidiNumbersFromKeyScale } from '@libs/midiControl'
+import { ScaleName } from '@constants/scales'
+import { getKeyNamesFromKeyScale } from '@libs/midiControl'
+import { getMatchingCount } from '@libs/number'
 import {
   Dispatch,
   MutableRefObject,
@@ -9,6 +10,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useRef,
   useState,
 } from 'react'
@@ -24,7 +26,7 @@ export interface BlockInfo {
   positionX: number
 }
 
-type CandidateChangeHandler = (candidates: any) => void
+type CandidateChangeHandler = (candidates: CandidateInfo[]) => void
 
 interface GameContextType {
   gameState: GameState
@@ -34,8 +36,11 @@ interface GameContextType {
   timer: MutableRefObject<number>
   lastBlockDropTime: MutableRefObject<number>
   judgeWithNewKey: (key: KeyName) => void
-  candidateScales: MutableRefObject<ScaleName[]>
+  candidateScales: MutableRefObject<
+    { score: number; key: KeyName; scale: ScaleName }[]
+  >
   setHandleCandidateChange: (handler: CandidateChangeHandler) => void
+  setHandleCandidateHit: (handler: CandidateChangeHandler) => void
 }
 
 const gameContext = createContext<GameContextType>(null!)
@@ -44,37 +49,67 @@ export const useGame = () => {
   return useContext(gameContext)
 }
 
+export interface CandidateInfo {
+  score: number
+  key: KeyName
+  scale: ScaleName
+}
+
 export const GameControlProvider = (props: PropsWithChildren) => {
   const [gameState, setGameState] = useState<GameState>('INIT')
   const blocks = useRef<BlockInfo[]>([])
   const refScore = useRef(0)
   const timer = useRef(0)
   const lastBlockDropTime = useRef(0)
+  const lastKeyInput = useRef(0)
 
   const compositionKeys = useRef<KeyName[]>([])
-  const candidateScales = useRef<ScaleName[]>([])
-  const compositionIndexes = useRef<number[]>([])
+  const candidateScales = useRef<CandidateInfo[]>([])
+
+  useEffect(() => {
+    const intervalTimer = setInterval(() => {
+      if (timer.current - lastKeyInput.current > 3.5) {
+        candidateScales.current = []
+        compositionKeys.current = []
+        handleCandidateChange.current(candidateScales.current)
+      }
+    }, 1000)
+
+    return () => clearInterval(intervalTimer)
+  }, [])
 
   const judgeWithNewKey = useCallback(
     (key: KeyName) => {
-      const keyIndex = KeyNameIndex[key]
-
       compositionKeys.current.push(key)
-      compositionIndexes.current.push(keyIndex)
 
-      // console.log(keyIndex)
+      compositionKeys.current = compositionKeys.current.slice(-8)
+      candidateScales.current = []
+      blocks.current.forEach((block) => {
+        const keys = getKeyNamesFromKeyScale(block.key, block.scaleType)
 
-      // find scales that contains current composition keys
-      // ScaleIndexTable[key][0]
+        const matches = getMatchingCount(keys, compositionKeys.current)
+
+        if (matches >= 5) {
+          candidateScales.current.push({
+            score: matches,
+            key: block.key,
+            scale: block.scaleType,
+          })
+        }
+      })
+
+      lastKeyInput.current = timer.current
+      candidateScales.current.sort((a, b) => b.score - a.score)
+
+      const hits = candidateScales.current.filter((v) => v.score === 7)
+
+      if (hits.length) {
+        handleCandidateHit.current(hits)
+        candidateScales.current = []
+        compositionKeys.current = []
+      }
 
       handleCandidateChange.current(candidateScales.current)
-
-      // get note indexes from scale and key
-      blocks.current.forEach((block) => {
-        const indexes = getMidiNumbersFromKeyScale(block.key, block.scaleType)
-        // console.log(indexes)
-      })
-      // find candidates
     },
     [blocks]
   )
@@ -83,6 +118,14 @@ export const GameControlProvider = (props: PropsWithChildren) => {
   const setHandleCandidateChange = useCallback(
     (handler: CandidateChangeHandler) => {
       handleCandidateChange.current = handler
+    },
+    []
+  )
+
+  const handleCandidateHit = useRef<CandidateChangeHandler>()
+  const setHandleCandidateHit = useCallback(
+    (handler: CandidateChangeHandler) => {
+      handleCandidateHit.current = handler
     },
     []
   )
@@ -99,6 +142,7 @@ export const GameControlProvider = (props: PropsWithChildren) => {
         judgeWithNewKey: judgeWithNewKey,
         candidateScales: candidateScales,
         setHandleCandidateChange: setHandleCandidateChange,
+        setHandleCandidateHit: setHandleCandidateHit,
       }}
     >
       {props.children}

@@ -3,23 +3,26 @@ import { TransportProvider, useTransport } from '@providers/TransportProvider'
 
 import { TransportGroup } from '@components/TransportGroup'
 import { VirtualPiano } from '@components/VirtualPiano'
-import { Canvas, useFrame } from '@react-three/fiber'
-import { useCallback, useEffect, useRef, useState } from 'react'
 import { Text as RText } from '@react-three/drei'
+import { Canvas, extend, useFrame } from '@react-three/fiber'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry'
-import { extend } from '@react-three/fiber'
 extend({ TextGeometry })
 
-import { useGame, BlockInfo } from '@providers/GameControlProvider'
 import { KeyName } from '@constants/notes'
+import { ScaleIndexTable } from '@constants/scales'
+import { KeyModel } from '@libs/midiControl'
 import {
   generateUniqueId,
   getRandomElement,
   getRandomFloat,
 } from '@libs/number'
-import { ScaleName } from '@constants/scales'
-import { KeyModel } from '@libs/midiControl'
 import { Box, Button } from '@mui/material'
+import {
+  BlockInfo,
+  CandidateInfo,
+  useGame,
+} from '@providers/GameControlProvider'
 
 import { Mesh, MeshToonMaterial } from 'three'
 
@@ -103,17 +106,7 @@ const keyNames: KeyName[] = [
   'Bb',
 ]
 
-const scaleNames: ScaleName[] = [
-  'major',
-  'minor',
-  'ionian',
-  'dorian',
-  'phrygian',
-  'lydian',
-  'mixolydian',
-  'aeolian',
-  'locrian',
-]
+const scaleNames = Object.keys(ScaleIndexTable)
 
 const ScoreBoard = () => {
   const { refScore } = useGame()
@@ -141,60 +134,79 @@ const ScoreBoard = () => {
 }
 
 const CandidateComposition = () => {
-  const [candidateGeometry, setCandidateGeometry] = useState()
+  const [candidateStrings, setCandidateStrings] = useState([])
   const { setHandleCandidateChange } = useGame()
 
+  const handleCandidateChange = useCallback((candidates: CandidateInfo[]) => {
+    setCandidateStrings([...candidates])
+  }, [])
+
   useEffect(() => {
-    setHandleCandidateChange((candidates) => {
-      console.log('----------- new candidates', candidates)
-    })
-  }, [setHandleCandidateChange])
+    setHandleCandidateChange(handleCandidateChange)
+  }, [handleCandidateChange, setHandleCandidateChange])
 
-  useFrame(() => {
-    // const newGeometry = (
-    //   <textGeometry args={['test', { font: blockFont, size: 1, height: 1 }]} />
-    // )
-  })
-
-  return <mesh>{candidateGeometry}</mesh>
-
-  //  if (newBlock) {
-  //         blocks.current.push(newBlock)
-
-  //         const materials = [
-  //           new MeshToonMaterial({ color: 0xff0000 }), // front
-  //           new MeshToonMaterial({ color: 0xffff00 }), // side
-  //         ]
-
-  //         const geo = new TextGeometry(`${newBlock.key} ${newBlock.scaleType}`, {
-  //           size: 1,
-  //           height: 0.2,
-  //           curveSegments: 2,
-  //           font: blockFont,
-  //         })
-  //         const textMesh = new Mesh(geo, materials)
-
-  //         textMesh.position.x = newBlock.positionX
-  //         textMesh.position.y = newBlock.endAt * Y_LENGTH_PER_SECOND
-  //         textMesh.position.z = 0
-  //         textMesh.rotateX(-railAngle)
-
-  //         refBlockMeshes.current[newBlock.id] = textMesh
-  //         refBoard.current.add(textMesh)
-  //   return <mesh>
-
-  //   </mesh>
+  return (
+    <mesh position={[-9, 0.5, 0]}>
+      {candidateStrings.map((candidate, idx) => {
+        const candidateString = `${candidate.key} ${candidate.scale} ${candidate.score}`
+        const scale = 0.3
+        return (
+          <RText
+            scale={scale}
+            color={'black'}
+            position={[0, -0.5 * idx, 0]}
+            anchorX="center"
+            anchorY="middle"
+          >
+            {candidateString}
+          </RText>
+        )
+      })}
+    </mesh>
+  )
 }
 
 const GamePlayBoard = () => {
-  const { gameState, blocks, timer, lastBlockDropTime, refScore } = useGame()
+  const {
+    gameState,
+    blocks,
+    timer,
+    lastBlockDropTime,
+    refScore,
+    setHandleCandidateHit,
+  } = useGame()
   const refBoard = useRef<THREE.Group>(null!)
   const { railAngle } = useTransport()
   const refBlockMeshes = useRef<{ [key: string]: THREE.Mesh }>({})
+  const handleCandidateHit = useCallback(
+    (hits: CandidateInfo[]) => {
+      hits.forEach((hit) => {
+        const remains = blocks.current.filter(
+          (v) => v.key !== hit.key || v.scaleType !== hit.scale
+        )
+        const ids = blocks.current.reduce((acc, curr) => {
+          if (curr.key === hit.key && curr.scaleType === hit.scale) {
+            acc.push(curr.id)
+          }
+          return acc
+        }, [])
+        ids.forEach((id) => refBoard.current.remove(refBlockMeshes.current[id]))
+        blocks.current = remains
+      })
+    },
+    [blocks]
+  )
+
+  useEffect(() => {
+    setHandleCandidateHit(handleCandidateHit)
+  }, [handleCandidateHit, setHandleCandidateHit])
 
   const generateNewBlock = useCallback(
     (time: number): BlockInfo => {
-      if (time - lastBlockDropTime.current >= 5) {
+      if (
+        lastBlockDropTime.current === 0 ||
+        time - lastBlockDropTime.current >= 5
+      ) {
         const newBlock: BlockInfo = {
           id: generateUniqueId(),
           key: getRandomElement(keyNames),
@@ -235,6 +247,7 @@ const GamePlayBoard = () => {
       delta *= speed
       timer.current += delta
 
+      // add new block
       const newBlock = generateNewBlock(timer.current)
 
       if (newBlock) {
@@ -277,7 +290,6 @@ const ImprovisationGame = () => {
 
   useEffect(() => {
     setHandleMidiNoteDown((midiNumber: number) => {
-      console.log('here')
       judgeWithNewKey(KeyModel.getNoteFromMidiNumber(midiNumber, false))
     })
   }, [judgeWithNewKey, setHandleMidiNoteDown])
@@ -316,9 +328,9 @@ const ImprovisationGame = () => {
                 <ScoreBoard />
                 <TransportGroup>
                   <GamePlayBoard />
-                  <CandidateComposition />
                   <VirtualPiano />
                 </TransportGroup>
+                <CandidateComposition />
               </Canvas>
             </div>
           </div>

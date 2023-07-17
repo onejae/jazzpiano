@@ -18,3 +18,7 @@ export function generateUniqueId(): string {
     Math.random().toString(36).substring(2, 15)
   )
 }
+
+export function getMatchingCount(arr1: any[], arr2: any[]): number {
+  return arr1.filter((item) => arr2.includes(item)).length
+}

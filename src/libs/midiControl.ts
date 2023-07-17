@@ -81,11 +81,15 @@ export const keyModelsByMidi: { [midiNumber: number]: KeyModel } = {}
 export const getMidiNumbersFromKeyScale = (
   key: KeyName,
   scale: ScaleName
-): number[] => {
+): number[][] => {
   const indexes = ScaleIndexTable[scale]
 
-  // console.log(scale, indexes)
-  return []
+  // for 12 keys
+  const result = Array.from({ length: 12 }, (_, i) =>
+    indexes.map((index) => (index + i) % 12).sort((a, b) => a - b)
+  )
+
+  return result
 }
 
 keyModels.forEach((keyModel) => {

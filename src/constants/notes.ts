@@ -199,6 +199,5 @@ export const NOTE_NAMES = {
   A7_SHARP: 'A#7',
   B7_FLAT: 'Bb7',
   B7: 'B7',
-
   C8: 'C8',
 }

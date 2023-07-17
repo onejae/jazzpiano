@@ -1,5 +1,5 @@
 import { KeyName, KeyNameIndex } from '@constants/notes'
-import { ScaleName } from '@constants/scales'
+import { ScaleIndexTable, ScaleName } from '@constants/scales'
 import { getMidiNumbersFromKeyScale } from '@libs/midiControl'
 import {
   Dispatch,
@@ -53,21 +53,26 @@ export const GameControlProvider = (props: PropsWithChildren) => {
 
   const compositionKeys = useRef<KeyName[]>([])
   const candidateScales = useRef<ScaleName[]>([])
+  const compositionIndexes = useRef<number[]>([])
 
   const judgeWithNewKey = useCallback(
     (key: KeyName) => {
-      const octaveIntervals = Array.from(
-        { length: 8 },
-        (_, i) => KeyNameIndex[key] + i * 12
-      )
+      const keyIndex = KeyNameIndex[key]
 
       compositionKeys.current.push(key)
+      compositionIndexes.current.push(keyIndex)
+
+      // console.log(keyIndex)
+
+      // find scales that contains current composition keys
+      // ScaleIndexTable[key][0]
 
       handleCandidateChange.current(candidateScales.current)
 
       // get note indexes from scale and key
       blocks.current.forEach((block) => {
         const indexes = getMidiNumbersFromKeyScale(block.key, block.scaleType)
+        // console.log(indexes)
       })
       // find candidates
     },

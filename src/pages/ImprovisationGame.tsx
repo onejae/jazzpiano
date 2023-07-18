@@ -287,6 +287,9 @@ const GamePlayBoard = () => {
             height: 0.2,
             curveSegments: 2,
             font: blockFont,
+            bevelEnabled: true,
+            bevelSize: 0.2,
+            bevelThickness: 0.1,
           }
         )
         const textMesh = new Mesh(geo, materials)

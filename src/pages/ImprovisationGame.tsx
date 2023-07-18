@@ -29,7 +29,7 @@ import { Mesh, MeshToonMaterial } from 'three'
 
 import { TextGeometry as TextGeometryPure } from 'three/addons/geometries/TextGeometry.js'
 import { Font, FontLoader } from 'three/addons/loaders/FontLoader.js'
-import { MovingStars } from '@components/InfiniteBackrounnd'
+import { MovingStars } from '@components/InfiniteBackround'
 
 const Y_LENGTH_PER_SECOND = 5
 
@@ -416,7 +416,7 @@ const ImprovisationGame = () => {
                 }}
               >
                 <ambientLight position={[0, 0, 0]} intensity={0.3} />
-                <pointLight position={[-3, 3, 0]} intensity={1.3} />
+                <pointLight position={[-3, 10, 3]} intensity={1.8} />
                 <ScoreBoard />
                 <TransportGroup>
                   <Background />

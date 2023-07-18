@@ -40,7 +40,8 @@ pianoPlayer.loaded().then(() => {
   console.log('--- virtual piano player is ready')
 })
 
-const START_X = -11.5
+// const START_X = -11.5
+let TOTAL_WIDTH = 0
 const WHITEKEY_WIDTH = 0.5
 const WHITEKEY_HEIGHT = 1.3
 const BLACKKEY_WIDTH = 0.3
@@ -60,7 +61,7 @@ interface KeyRenderSpaceType {
 
 export const KeyRenderSpace: { [key: number]: KeyRenderSpaceType } = {}
 
-for (let lastX = START_X, i = 0; i < keyModels.length; i++) {
+for (let lastX = 0, i = 0; i < keyModels.length; i++) {
   const key = keyModels[i]
   const [w, h, d] = key.isWhiteKey()
     ? [WHITEKEY_WIDTH, WHITEKEY_HEIGHT, 0.25]
@@ -82,6 +83,7 @@ for (let lastX = START_X, i = 0; i < keyModels.length; i++) {
   }
 
   lastX = lastX + (key.isWhiteKey() ? WHITEKEY_WIDTH + PADDING_X : 0)
+  TOTAL_WIDTH = lastX
 }
 
 export const VirtualPiano = (props: ThreeElements['mesh']) => {
@@ -188,7 +190,11 @@ export const VirtualPiano = (props: ThreeElements['mesh']) => {
         const renderSpace = KeyRenderSpace[key.midiNumber]
         return (
           <mesh
-            position={[renderSpace.x, renderSpace.y, renderSpace.z]}
+            position={[
+              renderSpace.x - TOTAL_WIDTH * 0.5,
+              renderSpace.y,
+              renderSpace.z,
+            ]}
             key={idx}
           >
             <boxGeometry args={[renderSpace.w, renderSpace.h, renderSpace.d]} />

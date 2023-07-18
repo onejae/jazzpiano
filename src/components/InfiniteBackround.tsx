@@ -27,11 +27,13 @@ export const MovingStars = () => {
   const [stars, setStars] = useState([])
 
   const addStar = () => {
-    const newStar = {
-      position: [Math.random() * 100 - 50, 50, 0],
-      speed: Math.random() * 3.5 + 0.1,
+    if (stars.length < 20) {
+      const newStar = {
+        position: [Math.random() * 100 - 50, 50, 0],
+        speed: Math.random() * 3.5 + 0.1,
+      }
+      setStars((prevStars) => [...prevStars, newStar])
     }
-    setStars((prevStars) => [...prevStars, newStar])
   }
 
   const removeStar = (mesh) => {

@@ -86,7 +86,7 @@ loader.load(
 )
 
 const GameButtons = () => {
-  const { setGameState } = useGame()
+  const { gameState, setGameState } = useGame()
 
   const { railAngle, setRailAngle } = useTransport()
 
@@ -117,15 +117,13 @@ const GameButtons = () => {
         justifyContent: 'center',
       }}
     >
-      <Box>
-        <Button onClick={handlePlayButton} sx={{ fontSize: 50 }}>
-          START
-        </Button>
-      </Box>
-      {/* <Box flexGrow={1}>
-        <Button onClick={handleAngleDecrease}>Up</Button>
-        <Button onClick={handleAngleIncrease}>Down</Button>
-      </Box> */}
+      {gameState != 'PLAYING' && (
+        <Box>
+          <Button onClick={handlePlayButton} sx={{ fontSize: 50 }}>
+            START
+          </Button>
+        </Box>
+      )}
     </Box>
   )
 }

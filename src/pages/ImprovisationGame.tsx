@@ -309,6 +309,17 @@ const GamePlayBoard = () => {
   return <group ref={refBoard}></group>
 }
 
+const Background = () => {
+  const lanes = []
+
+  return (
+    <mesh>
+      <planeBufferGeometry args={[50, 500]} />
+      <meshStandardMaterial color={'black'} />
+    </mesh>
+  )
+}
+
 const ImprovisationGame = () => {
   const { setHandleMidiNoteDown } = useMidiControl()
   const { judgeWithNewKey } = useGame()
@@ -352,6 +363,7 @@ const ImprovisationGame = () => {
                 <pointLight position={[-3, 3, 0]} intensity={1.3} />
                 <ScoreBoard />
                 <TransportGroup>
+                  <Background />
                   <GamePlayBoard />
                   <VirtualPiano />
                 </TransportGroup>

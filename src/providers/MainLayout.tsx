@@ -165,10 +165,6 @@ const MainLayout = () => {
       link: '/scale/major',
       subs: [{ displayName: 'Major', link: '/scale/major' }],
     },
-    {
-      displayName: 'Two-Five-One',
-      link: '/twofiveone',
-    },
   ])
 
   const [open, setOpen] = useState(true)
@@ -181,10 +177,10 @@ const MainLayout = () => {
   const menuElement = useCallback(
     (menuItemList: MenuItem[]) => {
       return (
-        <List>
+        <List sx={{ display: 'flex' }}>
           {menuItemList.map((item, index) => {
             return (
-              <ListItem key={index} disablePadding sx={{ display: 'block' }}>
+              <ListItem key={index} disablePadding>
                 <ListItemButton
                   sx={{
                     minHeight: 48,
@@ -250,7 +246,7 @@ const MainLayout = () => {
       <CssBaseline />
 
       <ThemeProvider theme={theme}>
-        <Drawer variant="permanent" open={open}>
+        {/* <Drawer variant="permanent" open={open}>
           <DrawerHeader>
             {open && <img alt="logo" src={Logo} width="10%" />}
             <IconButton onClick={handleToggleDrawer}>
@@ -259,7 +255,7 @@ const MainLayout = () => {
           </DrawerHeader>
           <Divider />
           {menuElement(itemList)}
-        </Drawer>
+        </Drawer> */}
         <Box
           sx={{
             flex: 1,
@@ -278,10 +274,23 @@ const MainLayout = () => {
             open={open}
           >
             <Toolbar>
-              <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                Jazz Piano Practice Portal
-              </Typography>
-              <Button>Sign in</Button>
+              <Box
+                display="flex"
+                flexDirection="row"
+                justifyContent="flex-start"
+                flexGrow={1}
+              >
+                <Typography variant="h6" component="div">
+                  Jazz Piano Practice Portal
+                </Typography>
+
+                <img alt="logo" src={Logo} width={50} />
+              </Box>
+
+              <Box sx={{ display: 'flex' }}>
+                {menuElement(itemList)}
+                <Button sx={{ minWidth: 100 }}>Sign in</Button>
+              </Box>
             </Toolbar>
           </AppBar>
           <LoadingScreen />
@@ -292,7 +301,7 @@ const MainLayout = () => {
             justifyContent="center"
             alignItems={'center'}
             sx={{ p: 2 }}
-            minHeight={`calc(100vh - 66px)`}
+            minHeight={`calc(100vh - 80px)`}
             minWidth={`calc(100vw - ${drawerWidth})`}
           >
             <Box sx={{ width: '100%' }}>

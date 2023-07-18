@@ -3,12 +3,13 @@ import { TransportProvider, useTransport } from '@providers/TransportProvider'
 
 import { TransportGroup } from '@components/TransportGroup'
 import { VirtualPiano } from '@components/VirtualPiano'
-import { Text as RText } from '@react-three/drei'
+import { Text as RText, Plane } from '@react-three/drei'
 import { Canvas, extend, useFrame } from '@react-three/fiber'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry'
 extend({ TextGeometry })
 
+import * as THREE from 'three'
 import { KeyName } from '@constants/notes'
 import { ScaleIndexTable, ScaleName } from '@constants/scales'
 import { KeyModel } from '@libs/midiControl'
@@ -28,12 +29,41 @@ import { Mesh, MeshToonMaterial } from 'three'
 
 import { TextGeometry as TextGeometryPure } from 'three/addons/geometries/TextGeometry.js'
 import { Font, FontLoader } from 'three/addons/loaders/FontLoader.js'
+import { MovingStars } from '@components/InfiniteBackrounnd'
 
-const Y_LENGTH_PER_SECOND = 1
+const Y_LENGTH_PER_SECOND = 5
 
 const loader = new FontLoader()
 
 let blockFont: Font = null
+const NebulaShader = {
+  uniforms: {
+    time: { value: 0.0 },
+  },
+  vertexShader: `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform float time;
+    varying vec2 vUv;
+
+    // Perlin noise function
+    float noise(vec2 p) {
+      return fract(sin(dot(p.xy, vec2(12.9898, 78.233))) * 43758.5453);
+    }
+
+    void main() {
+      vec2 p = vUv * 2.0 - 1.0;
+      float intensity = noise(p + vec2(time * 0.5, time * 0.2));
+      vec3 color = vec3(intensity * 0.5, intensity * 0.7, intensity * 1.0);
+      gl_FragColor = vec4(color, 1.0);
+    }
+  `,
+}
 
 loader.load(
   // resource URL
@@ -75,14 +105,27 @@ const GameButtons = () => {
   }, [setGameState])
 
   return (
-    <Box sx={{ backgroundColor: 'white', display: 'flex' }}>
-      <Box flexGrow={1}>
-        <Button onClick={handlePlayButton}>START</Button>
+    <Box
+      sx={{
+        backgroundColor: 'white',
+        display: 'flex',
+        position: 'fixed',
+        background: 'transparent',
+        left: '25%',
+        right: '25%',
+        top: '50vh',
+        justifyContent: 'center',
+      }}
+    >
+      <Box>
+        <Button onClick={handlePlayButton} sx={{ fontSize: 50 }}>
+          START
+        </Button>
       </Box>
-      <Box flexGrow={1}>
+      {/* <Box flexGrow={1}>
         <Button onClick={handleAngleDecrease}>Up</Button>
         <Button onClick={handleAngleIncrease}>Down</Button>
-      </Box>
+      </Box> */}
     </Box>
   )
 }
@@ -312,10 +355,23 @@ const GamePlayBoard = () => {
 const Background = () => {
   const lanes = []
 
+  const timeRef = useRef(0)
+
+  useFrame(({ clock }) => {
+    timeRef.current = clock.getElapsedTime()
+  })
   return (
     <mesh>
-      <planeBufferGeometry args={[50, 500]} />
-      <meshStandardMaterial color={'black'} />
+      {/* <planeBufferGeometry args={[50, 500]} /> */}
+      {/* <meshStandardMaterial color={'black'} /> */}
+
+      <Plane args={[1000, 300]}>
+        <meshStandardMaterial color="black" />
+      </Plane>
+      <ambientLight intensity={0.2} />
+      {/* Point light */}
+      {/* <pointLight position={[10, 0, 2]} intensity={0.11} color="white" /> */}
+      <MovingStars />
     </mesh>
   )
 }

@@ -10,7 +10,7 @@ import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry'
 extend({ TextGeometry })
 
 import { KeyName } from '@constants/notes'
-import { ScaleIndexTable } from '@constants/scales'
+import { ScaleIndexTable, ScaleName } from '@constants/scales'
 import { KeyModel } from '@libs/midiControl'
 import {
   generateUniqueId,
@@ -133,9 +133,15 @@ const ScoreBoard = () => {
   )
 }
 
+const GaugeBar = () => {
+  const { refScore } = useGame()
+  const [score, setScore] = useState(refScore.current)
+
+  return <mesh></mesh>
+}
 const CandidateComposition = () => {
   const [candidateStrings, setCandidateStrings] = useState([])
-  const { setHandleCandidateChange } = useGame()
+  const { setHandleCandidateChange, compositionKeys } = useGame()
 
   const handleCandidateChange = useCallback((candidates: CandidateInfo[]) => {
     setCandidateStrings([...candidates])
@@ -147,11 +153,26 @@ const CandidateComposition = () => {
 
   return (
     <mesh position={[-9, 0.5, 0]}>
+      {compositionKeys.current.map((key, idx) => {
+        return (
+          <RText
+            key={idx}
+            scale={0.2}
+            color={'black'}
+            position={[-1 + 0.2 * idx, 1.5, 0]}
+            anchorX="center"
+            anchorY="middle"
+          >
+            {key}
+          </RText>
+        )
+      })}
       {candidateStrings.map((candidate, idx) => {
         const candidateString = `${candidate.key} ${candidate.scale} ${candidate.score}`
         const scale = 0.3
         return (
           <RText
+            key={idx}
             scale={scale}
             color={'black'}
             position={[0, -0.5 * idx, 0]}
@@ -210,10 +231,11 @@ const GamePlayBoard = () => {
         const newBlock: BlockInfo = {
           id: generateUniqueId(),
           key: getRandomElement(keyNames),
-          scaleType: getRandomElement(scaleNames),
+          scaleType: getRandomElement(scaleNames) as ScaleName,
           startNoteIndex: 0,
           endAt: 20 + time,
           positionX: getRandomFloat(-10, 10),
+          noteNumToHit: 8,
         }
 
         lastBlockDropTime.current = time

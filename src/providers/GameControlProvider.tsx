@@ -1,5 +1,5 @@
 import { KeyName, KeyNameIndex } from '@constants/notes'
-import { ScaleName } from '@constants/scales'
+import { ScaleIndexTable, ScaleName } from '@constants/scales'
 import { getKeyNamesFromKeyScale } from '@libs/midiControl'
 import { getMatchingCount } from '@libs/number'
 import {
@@ -21,6 +21,7 @@ export interface BlockInfo {
   id: string
   key: KeyName
   scaleType: ScaleName
+  noteNumToHit?: number
   startNoteIndex: number
   endAt: number
   positionX: number
@@ -39,6 +40,7 @@ interface GameContextType {
   candidateScales: MutableRefObject<
     { score: number; key: KeyName; scale: ScaleName }[]
   >
+  compositionKeys: MutableRefObject<KeyName[]>
   setHandleCandidateChange: (handler: CandidateChangeHandler) => void
   setHandleCandidateHit: (handler: CandidateChangeHandler) => void
 }
@@ -53,6 +55,7 @@ export interface CandidateInfo {
   score: number
   key: KeyName
   scale: ScaleName
+  matchCountInScale: number
 }
 
 export const GameControlProvider = (props: PropsWithChildren) => {
@@ -88,12 +91,17 @@ export const GameControlProvider = (props: PropsWithChildren) => {
         const keys = getKeyNamesFromKeyScale(block.key, block.scaleType)
 
         const matches = getMatchingCount(keys, compositionKeys.current)
+        const matchCountInScale = getMatchingCount(
+          compositionKeys.current,
+          keys
+        )
 
         if (matches >= 5) {
           candidateScales.current.push({
             score: matches,
             key: block.key,
             scale: block.scaleType,
+            matchCountInScale: matchCountInScale,
           })
         }
       })
@@ -101,7 +109,11 @@ export const GameControlProvider = (props: PropsWithChildren) => {
       lastKeyInput.current = timer.current
       candidateScales.current.sort((a, b) => b.score - a.score)
 
-      const hits = candidateScales.current.filter((v) => v.score === 7)
+      const hits = candidateScales.current.filter(
+        (v) =>
+          v.score === ScaleIndexTable[v.scale].length &&
+          v.matchCountInScale === 8
+      )
 
       if (hits.length) {
         handleCandidateHit.current(hits)
@@ -141,6 +153,7 @@ export const GameControlProvider = (props: PropsWithChildren) => {
         lastBlockDropTime: lastBlockDropTime,
         judgeWithNewKey: judgeWithNewKey,
         candidateScales: candidateScales,
+        compositionKeys: compositionKeys,
         setHandleCandidateChange: setHandleCandidateChange,
         setHandleCandidateHit: setHandleCandidateHit,
       }}

@@ -64,8 +64,8 @@ export const KeyRenderSpace: { [key: number]: KeyRenderSpaceType } = {}
 for (let lastX = 0, i = 0; i < keyModels.length; i++) {
   const key = keyModels[i]
   const [w, h, d] = key.isWhiteKey()
-    ? [WHITEKEY_WIDTH, WHITEKEY_HEIGHT, 0.25]
-    : [BLACKKEY_WIDTH, BLACKKEY_HEIGHT, 0.15]
+    ? [WHITEKEY_WIDTH, WHITEKEY_HEIGHT, 0.55]
+    : [BLACKKEY_WIDTH, BLACKKEY_HEIGHT, 0.45]
 
   const position: Vector3 = key.isWhiteKey()
     ? [lastX, -WHITEKEY_HEIGHT * 0.5, -0.1]
@@ -206,7 +206,7 @@ export const VirtualPiano = (props: ThreeElements['mesh']) => {
             ></meshStandardMaterial>
             <Text
               scale={[0.1, 0.1, 0.1]}
-              position={key.isWhiteKey() ? [0, -0.4, 0.13] : [0, -0.2, 0.13]}
+              position={key.isWhiteKey() ? [0, -0.4, 0.33] : [0, -0.2, 0.23]}
               color={key.isWhiteKey() ? 'black' : 'white'}
               anchorX="center"
               anchorY="middle"

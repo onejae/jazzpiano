@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Stars } from '@react-three/drei'
 
@@ -26,7 +26,7 @@ const Star = ({ position, speed, removeStar }) => {
 export const MovingStars = () => {
   const [stars, setStars] = useState([])
 
-  const addStar = () => {
+  const addStar = useCallback(() => {
     if (stars.length < 20) {
       const newStar = {
         position: [Math.random() * 100 - 50, 50, 0],
@@ -34,11 +34,11 @@ export const MovingStars = () => {
       }
       setStars((prevStars) => [...prevStars, newStar])
     }
-  }
+  }, [stars])
 
-  const removeStar = (mesh) => {
+  const removeStar = useCallback((mesh) => {
     setStars((prevStars) => prevStars.filter((star) => star.meshRef !== mesh))
-  }
+  }, [])
 
   useEffect(() => {
     const intervalId = setInterval(addStar, 200)

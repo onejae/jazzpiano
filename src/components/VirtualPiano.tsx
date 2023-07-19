@@ -64,8 +64,8 @@ export const KeyRenderSpace: { [key: number]: KeyRenderSpaceType } = {}
 for (let lastX = 0, i = 0; i < keyModels.length; i++) {
   const key = keyModels[i]
   const [w, h, d] = key.isWhiteKey()
-    ? [WHITEKEY_WIDTH, WHITEKEY_HEIGHT, 0.55]
-    : [BLACKKEY_WIDTH, BLACKKEY_HEIGHT, 0.45]
+    ? [WHITEKEY_WIDTH, WHITEKEY_HEIGHT, 0.2]
+    : [BLACKKEY_WIDTH, BLACKKEY_HEIGHT, 0.25]
 
   const position: Vector3 = key.isWhiteKey()
     ? [lastX, -WHITEKEY_HEIGHT * 0.5, -0.1]

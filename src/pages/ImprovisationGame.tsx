@@ -4,7 +4,7 @@ import { TransportProvider, useTransport } from '@providers/TransportProvider'
 import { TransportGroup } from '@components/TransportGroup'
 import { VirtualPiano } from '@components/VirtualPiano'
 import { Text as RText, Plane } from '@react-three/drei'
-import { Canvas, extend, useFrame } from '@react-three/fiber'
+import { Canvas, ThreeElements, extend, useFrame } from '@react-three/fiber'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry'
 extend({ TextGeometry })
@@ -36,34 +36,6 @@ const Y_LENGTH_PER_SECOND = 5
 const loader = new FontLoader()
 
 let blockFont: Font = null
-const NebulaShader = {
-  uniforms: {
-    time: { value: 0.0 },
-  },
-  vertexShader: `
-    varying vec2 vUv;
-    void main() {
-      vUv = uv;
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-    }
-  `,
-  fragmentShader: `
-    uniform float time;
-    varying vec2 vUv;
-
-    // Perlin noise function
-    float noise(vec2 p) {
-      return fract(sin(dot(p.xy, vec2(12.9898, 78.233))) * 43758.5453);
-    }
-
-    void main() {
-      vec2 p = vUv * 2.0 - 1.0;
-      float intensity = noise(p + vec2(time * 0.5, time * 0.2));
-      vec3 color = vec3(intensity * 0.5, intensity * 0.7, intensity * 1.0);
-      gl_FragColor = vec4(color, 1.0);
-    }
-  `,
-}
 
 loader.load(
   // resource URL
@@ -174,11 +146,40 @@ const ScoreBoard = () => {
   )
 }
 
-const GaugeBar = () => {
+const geometry = new THREE.PlaneGeometry(10, 0.3)
+
+const GaugeBar = (props: ThreeElements['mesh']) => {
   const { refScore } = useGame()
   const [score, setScore] = useState(refScore.current)
 
-  return <mesh></mesh>
+  return (
+    <mesh
+      // ref={ref}
+      {...props}
+      // scale={[flipX * scale, scale, 1]}
+      geometry={geometry}
+    >
+      {/* {basic ? (
+        <meshBasicMaterial attach="material" {...materialProps}>
+          <texture ref={textureRef} attach="map" {...textureProps} />
+        </meshBasicMaterial>
+      ) : ( */}
+      {/* <meshLambertMaterial attach="material" transparent color="#ff0000" /> */}
+      <RText
+        scale={0.5}
+        position={[-5.5, -0.05, 0]}
+        color={'white'}
+        // anchorX="center"
+        // anchorY="middle"
+      >
+        HP
+      </RText>
+      <meshBasicMaterial color={0x0000ff} transparent />
+
+      {/* </meshLambertMaterial> */}
+      {/* )} */}
+    </mesh>
+  )
 }
 const CandidateComposition = () => {
   const [candidateStrings, setCandidateStrings] = useState([])
@@ -360,15 +361,10 @@ const Background = () => {
   })
   return (
     <mesh>
-      {/* <planeBufferGeometry args={[50, 500]} /> */}
-      {/* <meshStandardMaterial color={'black'} /> */}
+      {/* <Plane args={[1000, 300]}> */}
+      {/* <meshStandardMaterial color="black" /> */}
+      {/* </Plane> */}
 
-      <Plane args={[1000, 300]}>
-        <meshStandardMaterial color="black" />
-      </Plane>
-      <ambientLight intensity={0.2} />
-      {/* Point light */}
-      {/* <pointLight position={[10, 0, 2]} intensity={0.11} color="white" /> */}
       <MovingStars />
     </mesh>
   )
@@ -410,12 +406,12 @@ const ImprovisationGame = () => {
                   position: [0, 0, 13],
                   fov: 45,
                   near: 0.1,
-                  far: 200,
+                  far: 400,
                 }}
               >
-                <ambientLight position={[0, 0, 0]} intensity={0.3} />
-                <pointLight position={[-3, 10, 3]} intensity={1.8} />
-                <ScoreBoard />
+                <ambientLight position={[-3, 0, -3]} intensity={0.9} />
+                <pointLight position={[-13, 10, 0]} intensity={0.9} />
+                <GaugeBar position={[-10, 5, 0]} />
                 <TransportGroup>
                   <Background />
                   <GamePlayBoard />

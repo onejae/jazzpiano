@@ -85,6 +85,7 @@ const Playground = () => {
                   near: 0.1,
                   far: 200,
                 }}
+                gl={{ antialias: false }}
               >
                 <ambientLight position={[2, 0, 0]} intensity={0.3} />
                 <pointLight position={[-3, 0, 0]} intensity={3.3} />

@@ -275,6 +275,7 @@ const GamePlayBoard = () => {
   const { railAngle } = useTransport()
   const refBlockMeshes = useRef<{ [key: string]: THREE.Mesh }>({})
   const particlesRef = useRef([])
+  const [explosions, setExplosions] = useState([])
 
   const handleCandidateHit = useCallback(
     (hits: CandidateInfo[]) => {
@@ -288,7 +289,22 @@ const GamePlayBoard = () => {
           }
           return acc
         }, [])
-        ids.forEach((id) => refBoard.current.remove(refBlockMeshes.current[id]))
+        ids.forEach((id) => {
+          setExplosions((prevExplosions) => {
+            return [
+              ...prevExplosions,
+              {
+                position: [
+                  refBlockMeshes.current[id].position.x,
+                  refBlockMeshes.current[id].position.y -
+                    Y_LENGTH_PER_SECOND * timer.current,
+                  refBlockMeshes.current[id].position.z,
+                ],
+              },
+            ]
+          })
+          refBoard.current.remove(refBlockMeshes.current[id])
+        })
         blocks.current = remains
         gameState.score += 50
       })
@@ -340,6 +356,19 @@ const GamePlayBoard = () => {
         const blockMesh = refBlockMeshes.current[blockInfo.id]
 
         refBoard.current.remove(blockMesh)
+        setExplosions((prevExplosions) => {
+          return [
+            ...prevExplosions,
+            {
+              position: [
+                blockMesh.position.x,
+                blockMesh.position.y - Y_LENGTH_PER_SECOND * timer.current,
+                blockMesh.position.z,
+              ],
+            },
+          ]
+        })
+
         // gameState.explo
       })
 
@@ -390,7 +419,21 @@ const GamePlayBoard = () => {
     }
   })
 
-  return <group ref={refBoard}></group>
+  return (
+    <group>
+      <group ref={refBoard}></group>
+      {explosions.map((explosion, index) => {
+        return (
+          <ParticleExplosion
+            key={index}
+            position={explosion.position}
+            // color={explosion.color}
+            // onExplosionFinished={() => removeExplosion(index)}
+          />
+        )
+      })}
+    </group>
+  )
 }
 
 const Background = () => {
@@ -454,7 +497,6 @@ const ImprovisationGame = () => {
                   <VirtualPiano />
                 </TransportGroup>
                 <CandidateComposition />
-                <ParticleExplosion />
                 <ScoreBoard />
               </Canvas>
             </div>

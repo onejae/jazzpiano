@@ -3,7 +3,7 @@ import { TransportProvider, useTransport } from '@providers/TransportProvider'
 
 import { TransportGroup } from '@components/TransportGroup'
 import { VirtualPiano } from '@components/VirtualPiano'
-import { Text as RText, Plane } from '@react-three/drei'
+import { Text as RText } from '@react-three/drei'
 import { Canvas, ThreeElements, extend, useFrame } from '@react-three/fiber'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry'
@@ -146,39 +146,69 @@ const ScoreBoard = () => {
   )
 }
 
+const BAR_WIDTH = 7
 const geometry = new THREE.PlaneGeometry(10, 0.3)
+const geometryRed = new THREE.PlaneGeometry(BAR_WIDTH, 0.3)
 
-const GaugeBar = (props: ThreeElements['mesh']) => {
+const GaugeBar = (props: ThreeElements['group']) => {
   const { refScore } = useGame()
   const [score, setScore] = useState(refScore.current)
+  const [max, setMax] = useState(100)
+  const [current, setCurrent] = useState(100)
+  const redBarRef = useRef<THREE.Mesh>()
+  const [redBarScale, setRedBarScale] = useState(1)
+  const [yellowBarScale, setYellowBarScale] = useState(1)
+
+  useFrame((_state, delta) => {
+    // redBarRef.current.scale -= 0.001
+    setRedBarScale((c) => (c -= 0.001))
+  })
 
   return (
-    <mesh
-      // ref={ref}
-      {...props}
-      // scale={[flipX * scale, scale, 1]}
-      geometry={geometry}
-    >
-      {/* {basic ? (
-        <meshBasicMaterial attach="material" {...materialProps}>
-          <texture ref={textureRef} attach="map" {...textureProps} />
-        </meshBasicMaterial>
-      ) : ( */}
-      {/* <meshLambertMaterial attach="material" transparent color="#ff0000" /> */}
+    <group {...props}>
       <RText
         scale={0.5}
-        position={[-5.5, -0.05, 0]}
+        position={[-4, -0.05, 0]}
         color={'white'}
         // anchorX="center"
         // anchorY="middle"
       >
         HP
       </RText>
-      <meshBasicMaterial color={0x0000ff} transparent />
 
-      {/* </meshLambertMaterial> */}
-      {/* )} */}
-    </mesh>
+      <mesh
+      // ref={ref}
+      // scale={[flipX * scale, scale, 1]}
+      // geometry={geometry}
+      >
+        {/* {basic ? (
+        <meshBasicMaterial attach="material" {...materialProps}>
+          <texture ref={textureRef} attach="map" {...textureProps} />
+        </meshBasicMaterial>
+      ) : ( */}
+        {/* <meshLambertMaterial attach="material" transparent color="#ff0000" /> */}
+        <planeGeometry args={[BAR_WIDTH, 0.3]} />
+        <meshBasicMaterial color={0x0000ff} transparent />
+        {/* <meshBasicMaterial color={0xff00ff} transparent /> */}
+
+        {/* </meshLambertMaterial> */}
+        {/* )} */}
+      </mesh>
+      <mesh
+        ref={redBarRef}
+        position={[(BAR_WIDTH - BAR_WIDTH * redBarScale) * -0.5, 0, 0]}
+      >
+        <planeGeometry args={[BAR_WIDTH * redBarScale, 0.3]} />
+        <meshBasicMaterial color={0xff00000} transparent />
+      </mesh>
+      <mesh
+        ref={redBarRef}
+        position={[(BAR_WIDTH - BAR_WIDTH * redBarScale) * -0.5, 0, 0]}
+      >
+        <planeGeometry args={[BAR_WIDTH * redBarScale, 0.3]} />
+        <meshBasicMaterial color={0xffff000} transparent />
+      </mesh>
+    </group>
   )
 }
 const CandidateComposition = () => {
@@ -411,7 +441,7 @@ const ImprovisationGame = () => {
               >
                 <ambientLight position={[-3, 0, -3]} intensity={0.9} />
                 <pointLight position={[-13, 10, 0]} intensity={0.9} />
-                <GaugeBar position={[-10, 5, 0]} />
+                <GaugeBar position={[-3.7, 5, 0]} />
                 <TransportGroup>
                   <Background />
                   <GamePlayBoard />

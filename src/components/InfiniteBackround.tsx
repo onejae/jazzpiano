@@ -61,7 +61,7 @@ export const MovingStars = () => {
         sunPosition={[1, 0, 1]}
         inclination={9}
         azimuth={0.95}
-        rayleigh={50}
+        rayleigh={90}
       />
 
       <Stars

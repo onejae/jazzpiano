@@ -30,6 +30,8 @@ import { Mesh, MeshToonMaterial } from 'three'
 import { TextGeometry as TextGeometryPure } from 'three/addons/geometries/TextGeometry.js'
 import { Font, FontLoader } from 'three/addons/loaders/FontLoader.js'
 import { MovingStars } from '@components/InfiniteBackround'
+import { gameState } from '@providers/GameState'
+import ParticleExplosion from '@components/ParicleExplosion'
 
 const Y_LENGTH_PER_SECOND = 5
 
@@ -91,7 +93,10 @@ const GameButtons = () => {
     >
       {gameState != 'PLAYING' && (
         <Box>
-          <Button onClick={handlePlayButton} sx={{ fontSize: 50 }}>
+          <Button
+            onClick={handlePlayButton}
+            sx={{ fontSize: 50, color: 'white' }}
+          >
             START
           </Button>
         </Box>
@@ -122,25 +127,29 @@ const keyNames: KeyName[] = [
 const scaleNames = Object.keys(ScaleIndexTable)
 
 const ScoreBoard = () => {
-  const { refScore } = useGame()
-  const [score, setScore] = useState(refScore.current)
+  const [scoreToRender, setScore] = useState(gameState.score)
 
   useFrame(() => {
-    if (score !== refScore.current) {
-      setScore(refScore.current)
+    if (scoreToRender !== gameState.score) {
+      setScore(gameState.score)
     }
   })
 
   return (
     <mesh>
       <RText
+        letterSpacing={0.2}
+        outlineWidth={0.1}
+        outlineColor={'white'}
+        strokeWidth={0.2}
+        strokeColor={'black'}
         scale={[1, 1, 1]}
-        color={'black'}
-        position={[-12, 4.5, 0]}
+        color={'white'}
+        position={[0, 4.5, 0]}
         anchorX="center"
         anchorY="middle"
       >
-        {score}
+        {scoreToRender}
       </RText>
     </mesh>
   )
@@ -149,8 +158,7 @@ const ScoreBoard = () => {
 const BAR_WIDTH = 7
 
 const GaugeBar = (props: ThreeElements['group']) => {
-  const { refScore } = useGame()
-  const lastScoreRef = useRef(refScore.current)
+  const lastScoreRef = useRef(gameState.score)
   const redBarRef = useRef<THREE.Mesh>()
   const [redBarScale, setRedBarScale] = useState(1)
   const [yellowBarScale, setYellowBarScale] = useState(1)
@@ -158,10 +166,10 @@ const GaugeBar = (props: ThreeElements['group']) => {
   const renderTimer = useRef(0)
 
   useFrame((_state, delta) => {
-    if (lastScoreRef.current != refScore.current) {
-      lastScoreRef.current = refScore.current
+    if (lastScoreRef.current != gameState.hp) {
+      lastScoreRef.current = gameState.hp
       renderTimer.current = 0
-      setYellowBarScale(refScore.current / 100)
+      setYellowBarScale(gameState.hp / 100)
     }
 
     if (redBarScale != yellowBarScale) {
@@ -256,16 +264,18 @@ const CandidateComposition = () => {
 
 const GamePlayBoard = () => {
   const {
-    gameState,
+    gameState: playState,
+    setGameState,
     blocks,
     timer,
     lastBlockDropTime,
-    refScore,
     setHandleCandidateHit,
   } = useGame()
   const refBoard = useRef<THREE.Group>(null!)
   const { railAngle } = useTransport()
   const refBlockMeshes = useRef<{ [key: string]: THREE.Mesh }>({})
+  const particlesRef = useRef([])
+
   const handleCandidateHit = useCallback(
     (hits: CandidateInfo[]) => {
       hits.forEach((hit) => {
@@ -280,6 +290,7 @@ const GamePlayBoard = () => {
         }, [])
         ids.forEach((id) => refBoard.current.remove(refBlockMeshes.current[id]))
         blocks.current = remains
+        gameState.score += 50
       })
     },
     [blocks]
@@ -293,7 +304,7 @@ const GamePlayBoard = () => {
     (time: number): BlockInfo => {
       if (
         lastBlockDropTime.current === 0 ||
-        time - lastBlockDropTime.current >= 5
+        time - lastBlockDropTime.current >= 1
       ) {
         const newBlock: BlockInfo = {
           id: generateUniqueId(),
@@ -318,17 +329,18 @@ const GamePlayBoard = () => {
   const speed = 1
 
   useFrame((_state, delta) => {
-    if (gameState === 'PLAYING') {
+    if (playState === 'PLAYING') {
       // check blocks touche line
       const touches = blocks.current.filter((v) => v.endAt <= timer.current)
       const remains = blocks.current.filter((v) => v.endAt > timer.current)
 
-      refScore.current -= touches.length * 5
+      gameState.hp -= touches.length * 5
 
       touches.forEach((blockInfo) => {
         const blockMesh = refBlockMeshes.current[blockInfo.id]
 
         refBoard.current.remove(blockMesh)
+        // gameState.explo
       })
 
       blocks.current = remains
@@ -370,9 +382,14 @@ const GamePlayBoard = () => {
         refBoard.current.add(textMesh)
       }
 
+      if (gameState.hp <= 0) {
+        setGameState('WAIT_FOR_START')
+      }
+
       refBoard.current.position.setY(-Y_LENGTH_PER_SECOND * timer.current)
     }
   })
+
   return <group ref={refBoard}></group>
 }
 
@@ -437,6 +454,8 @@ const ImprovisationGame = () => {
                   <VirtualPiano />
                 </TransportGroup>
                 <CandidateComposition />
+                <ParticleExplosion />
+                <ScoreBoard />
               </Canvas>
             </div>
           </div>

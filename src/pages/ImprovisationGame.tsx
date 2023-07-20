@@ -147,52 +147,47 @@ const ScoreBoard = () => {
 }
 
 const BAR_WIDTH = 7
-const geometry = new THREE.PlaneGeometry(10, 0.3)
-const geometryRed = new THREE.PlaneGeometry(BAR_WIDTH, 0.3)
 
 const GaugeBar = (props: ThreeElements['group']) => {
   const { refScore } = useGame()
-  const [score, setScore] = useState(refScore.current)
-  const [max, setMax] = useState(100)
-  const [current, setCurrent] = useState(100)
+  const lastScoreRef = useRef(refScore.current)
   const redBarRef = useRef<THREE.Mesh>()
   const [redBarScale, setRedBarScale] = useState(1)
   const [yellowBarScale, setYellowBarScale] = useState(1)
+  const BAR_MOVEMENT_TIME = 0.5
+  const renderTimer = useRef(0)
 
   useFrame((_state, delta) => {
-    // redBarRef.current.scale -= 0.001
-    setRedBarScale((c) => (c -= 0.001))
+    if (lastScoreRef.current != refScore.current) {
+      lastScoreRef.current = refScore.current
+      renderTimer.current = 0
+      setYellowBarScale(refScore.current / 100)
+    }
+
+    if (redBarScale != yellowBarScale) {
+      const gap =
+        (redBarScale - yellowBarScale) *
+        (1 - renderTimer.current / BAR_MOVEMENT_TIME)
+
+      if (renderTimer.current >= BAR_MOVEMENT_TIME) {
+        setRedBarScale(yellowBarScale)
+      } else {
+        setRedBarScale(yellowBarScale + gap)
+      }
+    }
+
+    renderTimer.current += delta
   })
 
   return (
     <group {...props}>
-      <RText
-        scale={0.5}
-        position={[-4, -0.05, 0]}
-        color={'white'}
-        // anchorX="center"
-        // anchorY="middle"
-      >
+      <RText scale={0.5} position={[-4, -0.05, 0]} color={'white'}>
         HP
       </RText>
 
-      <mesh
-      // ref={ref}
-      // scale={[flipX * scale, scale, 1]}
-      // geometry={geometry}
-      >
-        {/* {basic ? (
-        <meshBasicMaterial attach="material" {...materialProps}>
-          <texture ref={textureRef} attach="map" {...textureProps} />
-        </meshBasicMaterial>
-      ) : ( */}
-        {/* <meshLambertMaterial attach="material" transparent color="#ff0000" /> */}
+      <mesh>
         <planeGeometry args={[BAR_WIDTH, 0.3]} />
         <meshBasicMaterial color={0x0000ff} transparent />
-        {/* <meshBasicMaterial color={0xff00ff} transparent /> */}
-
-        {/* </meshLambertMaterial> */}
-        {/* )} */}
       </mesh>
       <mesh
         ref={redBarRef}
@@ -203,9 +198,9 @@ const GaugeBar = (props: ThreeElements['group']) => {
       </mesh>
       <mesh
         ref={redBarRef}
-        position={[(BAR_WIDTH - BAR_WIDTH * redBarScale) * -0.5, 0, 0]}
+        position={[(BAR_WIDTH - BAR_WIDTH * yellowBarScale) * -0.5, 0, 0]}
       >
-        <planeGeometry args={[BAR_WIDTH * redBarScale, 0.3]} />
+        <planeGeometry args={[BAR_WIDTH * yellowBarScale, 0.3]} />
         <meshBasicMaterial color={0xffff000} transparent />
       </mesh>
     </group>
@@ -382,8 +377,6 @@ const GamePlayBoard = () => {
 }
 
 const Background = () => {
-  const lanes = []
-
   const timeRef = useRef(0)
 
   useFrame(({ clock }) => {
@@ -391,10 +384,6 @@ const Background = () => {
   })
   return (
     <mesh>
-      {/* <Plane args={[1000, 300]}> */}
-      {/* <meshStandardMaterial color="black" /> */}
-      {/* </Plane> */}
-
       <MovingStars />
     </mesh>
   )
@@ -441,7 +430,7 @@ const ImprovisationGame = () => {
               >
                 <ambientLight position={[-3, 0, -3]} intensity={0.9} />
                 <pointLight position={[-13, 10, 0]} intensity={0.9} />
-                <GaugeBar position={[-3.7, 5, 0]} />
+                <GaugeBar position={[-11, 5, 0]} />
                 <TransportGroup>
                   <Background />
                   <GamePlayBoard />

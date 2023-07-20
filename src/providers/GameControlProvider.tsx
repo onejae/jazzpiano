@@ -61,7 +61,7 @@ export interface CandidateInfo {
 export const GameControlProvider = (props: PropsWithChildren) => {
   const [gameState, setGameState] = useState<GameState>('INIT')
   const blocks = useRef<BlockInfo[]>([])
-  const refScore = useRef(0)
+  const refScore = useRef(100)
   const timer = useRef(0)
   const lastBlockDropTime = useRef(0)
   const lastKeyInput = useRef(0)

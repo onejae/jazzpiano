@@ -32,6 +32,8 @@ import { Font, FontLoader } from 'three/addons/loaders/FontLoader.js'
 import { MovingStars } from '@components/InfiniteBackround'
 import { gameState } from '@providers/GameState'
 import ParticleExplosion from '@components/ParicleExplosion'
+import LeaderBoard from '@components/LeaderBoard'
+import { ComboBox } from '@components/ComboBox'
 
 const Y_LENGTH_PER_SECOND = 5
 
@@ -60,7 +62,7 @@ loader.load(
 )
 
 const GameButtons = () => {
-  const { gameState, setGameState } = useGame()
+  const { gameState, setGameState, setShowLeaderBoard } = useGame()
 
   const { railAngle, setRailAngle } = useTransport()
 
@@ -92,12 +94,18 @@ const GameButtons = () => {
       }}
     >
       {gameState != 'PLAYING' && (
-        <Box>
+        <Box display="flex" flexDirection={'column'}>
           <Button
             onClick={handlePlayButton}
             sx={{ fontSize: 50, color: 'white' }}
           >
             START
+          </Button>
+          <Button
+            sx={{ color: 'white' }}
+            onClick={() => setShowLeaderBoard(true)}
+          >
+            view ranking
           </Button>
         </Box>
       )}
@@ -126,7 +134,7 @@ const keyNames: KeyName[] = [
 
 const scaleNames = Object.keys(ScaleIndexTable)
 
-const ScoreBoard = () => {
+const ScorePanel = () => {
   const [scoreToRender, setScore] = useState(gameState.score)
 
   useFrame(() => {
@@ -277,6 +285,7 @@ const GamePlayBoard = () => {
   const refBlockMeshes = useRef<{ [key: string]: THREE.Mesh }>({})
   const particlesRef = useRef([])
   const [explosions, setExplosions] = useState([])
+  const refLastHitTime = useRef(0)
 
   const handleCandidateHit = useCallback(
     (hits: CandidateInfo[]) => {
@@ -291,6 +300,9 @@ const GamePlayBoard = () => {
           return acc
         }, [])
         ids.forEach((id) => {
+          gameState.combo += 1
+          refLastHitTime.current = timer.current
+
           setExplosions((prevExplosions) => {
             refBlockMeshes.current[id].geometry.computeBoundingBox()
             const center = refBlockMeshes.current[
@@ -310,6 +322,7 @@ const GamePlayBoard = () => {
           })
           refBoard.current.remove(refBlockMeshes.current[id])
         })
+
         blocks.current = remains
         gameState.score += 50
       })
@@ -325,14 +338,14 @@ const GamePlayBoard = () => {
     (time: number): BlockInfo => {
       if (
         lastBlockDropTime.current === 0 ||
-        time - lastBlockDropTime.current >= 1
+        time - lastBlockDropTime.current >= 3
       ) {
         const newBlock: BlockInfo = {
           id: generateUniqueId(),
           key: getRandomElement(keyNames),
           scaleType: getRandomElement(scaleNames) as ScaleName,
           startNoteIndex: 0,
-          endAt: 20 + time,
+          endAt: 8 + time,
           positionX: getRandomFloat(-10, 10),
           noteNumToHit: 8,
         }
@@ -361,6 +374,7 @@ const GamePlayBoard = () => {
         const blockMesh = refBlockMeshes.current[blockInfo.id]
 
         refBoard.current.remove(blockMesh)
+        gameState.combo = 0
         setExplosions((prevExplosions) => {
           blockMesh.geometry.computeBoundingBox()
           const center = blockMesh.geometry.boundingBox.getCenter(
@@ -460,7 +474,8 @@ const Background = () => {
 
 const ImprovisationGame = () => {
   const { setHandleMidiNoteDown } = useMidiControl()
-  const { judgeWithNewKey } = useGame()
+  const { judgeWithNewKey, showLeaderBoard, setShowLeaderBoard, timer } =
+    useGame()
 
   useEffect(() => {
     setHandleMidiNoteDown((midiNumber: number) => {
@@ -506,11 +521,21 @@ const ImprovisationGame = () => {
                   <VirtualPiano />
                 </TransportGroup>
                 <CandidateComposition />
-                <ScoreBoard />
+                <ScorePanel />
+                <ComboBox position={[-15, 2, 0]} />
               </Canvas>
             </div>
           </div>
           <GameButtons />
+          <LeaderBoard
+            open={showLeaderBoard}
+            users={[
+              { name: 'wonjae lee', score: 14832 },
+              { name: 'suzy', score: 9999 },
+              { name: 'IU', score: 323 },
+            ]}
+            onClose={() => setShowLeaderBoard(false)}
+          />
         </TransportProvider>
       </Box>
     </Box>

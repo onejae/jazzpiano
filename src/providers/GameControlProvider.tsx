@@ -43,6 +43,8 @@ interface GameContextType {
   compositionKeys: MutableRefObject<KeyName[]>
   setHandleCandidateChange: (handler: CandidateChangeHandler) => void
   setHandleCandidateHit: (handler: CandidateChangeHandler) => void
+  showLeaderBoard: boolean
+  setShowLeaderBoard: Dispatch<SetStateAction<boolean>>
 }
 
 const gameContext = createContext<GameContextType>(null!)
@@ -68,6 +70,8 @@ export const GameControlProvider = (props: PropsWithChildren) => {
 
   const compositionKeys = useRef<KeyName[]>([])
   const candidateScales = useRef<CandidateInfo[]>([])
+
+  const [showLeaderBoard, setShowLeaderBoard] = useState(false)
 
   useEffect(() => {
     const intervalTimer = setInterval(() => {
@@ -156,6 +160,8 @@ export const GameControlProvider = (props: PropsWithChildren) => {
         compositionKeys: compositionKeys,
         setHandleCandidateChange: setHandleCandidateChange,
         setHandleCandidateHit: setHandleCandidateHit,
+        showLeaderBoard: showLeaderBoard,
+        setShowLeaderBoard: setShowLeaderBoard,
       }}
     >
       {props.children}

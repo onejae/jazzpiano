@@ -29,9 +29,11 @@ const ParticleExplosion = (args: ThreeElements['group']) => {
     }
   }, [])
 
-  useFrame(() => {
+  useFrame((_state, delta) => {
     particles.current.forEach((particle) => {
-      particle.mesh.position.add(particle.velocity)
+      particle.mesh.position.add(
+        particle.velocity.clone().multiplyScalar(delta * 30)
+      )
       particle.lifetime -= 1
 
       if (particle.lifetime <= 0) {

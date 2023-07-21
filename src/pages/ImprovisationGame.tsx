@@ -263,6 +263,7 @@ const CandidateComposition = () => {
 }
 
 const GamePlayBoard = () => {
+  console.log('--- re render')
   const {
     gameState: playState,
     setGameState,
@@ -291,11 +292,15 @@ const GamePlayBoard = () => {
         }, [])
         ids.forEach((id) => {
           setExplosions((prevExplosions) => {
+            refBlockMeshes.current[id].geometry.computeBoundingBox()
+            const center = refBlockMeshes.current[
+              id
+            ].geometry.boundingBox.getCenter(new THREE.Vector3())
             return [
               ...prevExplosions,
               {
                 position: [
-                  refBlockMeshes.current[id].position.x,
+                  refBlockMeshes.current[id].position.x + center.x,
                   refBlockMeshes.current[id].position.y -
                     Y_LENGTH_PER_SECOND * timer.current,
                   refBlockMeshes.current[id].position.z,
@@ -309,7 +314,7 @@ const GamePlayBoard = () => {
         gameState.score += 50
       })
     },
-    [blocks]
+    [blocks, timer]
   )
 
   useEffect(() => {
@@ -357,19 +362,22 @@ const GamePlayBoard = () => {
 
         refBoard.current.remove(blockMesh)
         setExplosions((prevExplosions) => {
+          blockMesh.geometry.computeBoundingBox()
+          const center = blockMesh.geometry.boundingBox.getCenter(
+            new THREE.Vector3()
+          )
+
           return [
             ...prevExplosions,
             {
               position: [
-                blockMesh.position.x,
+                blockMesh.position.x + center.x,
                 blockMesh.position.y - Y_LENGTH_PER_SECOND * timer.current,
                 blockMesh.position.z,
               ],
             },
           ]
         })
-
-        // gameState.explo
       })
 
       blocks.current = remains
@@ -400,6 +408,7 @@ const GamePlayBoard = () => {
             bevelThickness: 0.1,
           }
         )
+
         const textMesh = new Mesh(geo, materials)
 
         textMesh.position.x = newBlock.positionX

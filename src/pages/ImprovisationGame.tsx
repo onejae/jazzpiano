@@ -324,7 +324,7 @@ const GamePlayBoard = () => {
         })
 
         blocks.current = remains
-        gameState.score += 50
+        gameState.score += gameState.combo * 5
       })
     },
     [blocks, timer]
@@ -522,7 +522,7 @@ const ImprovisationGame = () => {
                 </TransportGroup>
                 <CandidateComposition />
                 <ScorePanel />
-                <ComboBox position={[-15, 2, 0]} />
+                <ComboBox position={[-16, 2, 0]} />
               </Canvas>
             </div>
           </div>

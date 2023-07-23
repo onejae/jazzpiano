@@ -20,32 +20,34 @@ export const RealPiano = () => {
         }
       },
     }).then(() => {
-      WebMidi.inputs.forEach((input, idx) => {
-        input.removeListener('noteon')
-        input.addListener(
-          'noteon',
-          (e: NoteMessageEvent & { data: number[] }) => {
-            const midiNumber = e.data[1]
-            const velocity = e.data[2]
-            if (refHandleMidiNoteDown.current)
-              refHandleMidiNoteDown.current(midiNumber, velocity)
-            if (refHandlePreviewNoteDown.current)
-              refHandlePreviewNoteDown.current(midiNumber, velocity)
-          }
-        )
+      WebMidi.addListener('connected', function (e) {
+        WebMidi.inputs.forEach((input, idx) => {
+          input.removeListener('noteon')
+          input.addListener(
+            'noteon',
+            (e: NoteMessageEvent & { data: number[] }) => {
+              const midiNumber = e.data[1]
+              const velocity = e.data[2]
+              if (refHandleMidiNoteDown.current)
+                refHandleMidiNoteDown.current(midiNumber, velocity)
+              if (refHandlePreviewNoteDown.current)
+                refHandlePreviewNoteDown.current(midiNumber, velocity)
+            }
+          )
 
-        input.removeListener('noteoff')
-        input.addListener(
-          'noteoff',
-          (e: NoteMessageEvent & { data: number[] }) => {
-            const midiNumber = e.data[1]
-            const velocity = e.data[2]
-            if (refHandleMidiNoteUp.current)
-              refHandleMidiNoteUp.current(midiNumber, velocity)
-            if (refHandlePreviewNoteUp.current)
-              refHandlePreviewNoteUp.current(midiNumber, velocity)
-          }
-        )
+          input.removeListener('noteoff')
+          input.addListener(
+            'noteoff',
+            (e: NoteMessageEvent & { data: number[] }) => {
+              const midiNumber = e.data[1]
+              const velocity = e.data[2]
+              if (refHandleMidiNoteUp.current)
+                refHandleMidiNoteUp.current(midiNumber, velocity)
+              if (refHandlePreviewNoteUp.current)
+                refHandlePreviewNoteUp.current(midiNumber, velocity)
+            }
+          )
+        })
       })
     })
 

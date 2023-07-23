@@ -82,6 +82,8 @@ export const ComboBox = (args: ThreeElements['mesh']) => {
     renderTimer.current += delta
   })
 
+  if (gameState.combo === 0) return <></>
+
   return (
     <mesh {...args}>
       <group position={groupPosition}>

@@ -62,7 +62,7 @@ loader.load(
 )
 
 const GameButtons = () => {
-  const { gameState, setGameState, setShowLeaderBoard } = useGame()
+  const { playState, setPlayState, setShowLeaderBoard } = useGame()
 
   const { railAngle, setRailAngle } = useTransport()
 
@@ -77,8 +77,10 @@ const GameButtons = () => {
   }, [railAngle, setRailAngle])
 
   const handlePlayButton = useCallback(() => {
-    setGameState('PLAYING')
-  }, [setGameState])
+    gameState.score = 0
+    gameState.hp = 100
+    setPlayState('PLAYING')
+  }, [setPlayState])
 
   return (
     <Box
@@ -93,7 +95,7 @@ const GameButtons = () => {
         justifyContent: 'center',
       }}
     >
-      {gameState != 'PLAYING' && (
+      {playState != 'PLAYING' && (
         <Box display="flex" flexDirection={'column'}>
           <Button
             onClick={handlePlayButton}
@@ -273,8 +275,8 @@ const CandidateComposition = () => {
 const GamePlayBoard = () => {
   console.log('--- re render')
   const {
-    gameState: playState,
-    setGameState,
+    playState,
+    setPlayState,
     blocks,
     timer,
     lastBlockDropTime,
@@ -435,7 +437,7 @@ const GamePlayBoard = () => {
       }
 
       if (gameState.hp <= 0) {
-        setGameState('WAIT_FOR_START')
+        setPlayState('WAIT_FOR_START')
       }
 
       refBoard.current.position.setY(-Y_LENGTH_PER_SECOND * timer.current)

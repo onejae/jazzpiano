@@ -15,7 +15,7 @@ import {
   useState,
 } from 'react'
 
-type GameState = 'INIT' | 'PLAYING' | 'WAIT_FOR_START'
+type PlayState = 'INIT' | 'PLAYING' | 'WAIT_FOR_START'
 
 export interface BlockInfo {
   id: string
@@ -30,8 +30,8 @@ export interface BlockInfo {
 type CandidateChangeHandler = (candidates: CandidateInfo[]) => void
 
 interface GameContextType {
-  gameState: GameState
-  setGameState: Dispatch<SetStateAction<GameState>>
+  playState: PlayState
+  setPlayState: Dispatch<SetStateAction<PlayState>>
   blocks: MutableRefObject<BlockInfo[]>
   refScore: MutableRefObject<number>
   timer: MutableRefObject<number>
@@ -61,7 +61,7 @@ export interface CandidateInfo {
 }
 
 export const GameControlProvider = (props: PropsWithChildren) => {
-  const [gameState, setGameState] = useState<GameState>('INIT')
+  const [playState, setPlayState] = useState<PlayState>('INIT')
   const blocks = useRef<BlockInfo[]>([])
   const refScore = useRef(100)
   const timer = useRef(0)
@@ -149,8 +149,8 @@ export const GameControlProvider = (props: PropsWithChildren) => {
   return (
     <gameContext.Provider
       value={{
-        gameState: gameState,
-        setGameState: setGameState,
+        playState: playState,
+        setPlayState: setPlayState,
         blocks: blocks,
         refScore: refScore,
         timer: timer,

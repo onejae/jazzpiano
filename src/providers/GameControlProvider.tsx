@@ -17,9 +17,12 @@ import {
 
 type PlayState = 'INIT' | 'PLAYING' | 'WAIT_FOR_START'
 
+type BlockType = 'SCALENORMAL' | 'SCALE_WITH_ENTRYNOTE'
+
 export interface BlockInfo {
   id: string
   key: KeyName
+  type: BlockType
   scaleType: ScaleName
   noteNumToHit?: number
   startNoteIndex: number

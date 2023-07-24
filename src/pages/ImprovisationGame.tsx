@@ -273,7 +273,6 @@ const CandidateComposition = () => {
 }
 
 const GamePlayBoard = () => {
-  console.log('--- re render')
   const {
     playState,
     setPlayState,
@@ -336,31 +335,20 @@ const GamePlayBoard = () => {
     setHandleCandidateHit(handleCandidateHit)
   }, [handleCandidateHit, setHandleCandidateHit])
 
-  const generateNewBlock = useCallback(
-    (time: number): BlockInfo => {
-      if (
-        lastBlockDropTime.current === 0 ||
-        time - lastBlockDropTime.current >= 3
-      ) {
-        const newBlock: BlockInfo = {
-          id: generateUniqueId(),
-          key: getRandomElement(keyNames),
-          scaleType: getRandomElement(scaleNames) as ScaleName,
-          startNoteIndex: 0,
-          endAt: 8 + time,
-          positionX: getRandomFloat(-10, 10),
-          noteNumToHit: 8,
-        }
+  const generateNewBlock = useCallback((time: number): BlockInfo => {
+    const newBlock: BlockInfo = {
+      id: generateUniqueId(),
+      key: getRandomElement(keyNames),
+      scaleType: getRandomElement(scaleNames) as ScaleName,
+      startNoteIndex: 0,
+      endAt: 8 + time,
+      positionX: getRandomFloat(-10, 10),
+      noteNumToHit: 8,
+      type: 'SCALENORMAL',
+    }
 
-        lastBlockDropTime.current = time
-
-        return newBlock
-      } else {
-        return null
-      }
-    },
-    [lastBlockDropTime]
-  )
+    return newBlock
+  }, [])
 
   const speed = 1
 
@@ -402,38 +390,45 @@ const GamePlayBoard = () => {
       timer.current += delta
 
       // add new block
-      const newBlock = generateNewBlock(timer.current)
+      if (
+        lastBlockDropTime.current === 0 ||
+        timer.current - lastBlockDropTime.current >= 3
+      ) {
+        const newBlock = generateNewBlock(timer.current)
 
-      if (newBlock) {
-        blocks.current.push(newBlock)
+        if (newBlock) {
+          blocks.current.push(newBlock)
 
-        const materials = [
-          new MeshToonMaterial({ color: 0xff0000 }), // front
-          new MeshToonMaterial({ color: 0xffff00 }), // side
-        ]
+          const materials = [
+            new MeshToonMaterial({ color: 0xff0000 }), // front
+            new MeshToonMaterial({ color: 0xffff00 }), // side
+          ]
 
-        const geo = new TextGeometryPure(
-          `${newBlock.key} ${newBlock.scaleType}`,
-          {
-            size: 1,
-            height: 0.2,
-            curveSegments: 2,
-            font: blockFont,
-            bevelEnabled: true,
-            bevelSize: 0.2,
-            bevelThickness: 0.1,
-          }
-        )
+          const geo = new TextGeometryPure(
+            `${newBlock.key} ${newBlock.scaleType}`,
+            {
+              size: 1,
+              height: 0.2,
+              curveSegments: 2,
+              font: blockFont,
+              bevelEnabled: true,
+              bevelSize: 0.2,
+              bevelThickness: 0.1,
+            }
+          )
 
-        const textMesh = new Mesh(geo, materials)
+          const textMesh = new Mesh(geo, materials)
 
-        textMesh.position.x = newBlock.positionX
-        textMesh.position.y = newBlock.endAt * Y_LENGTH_PER_SECOND
-        textMesh.position.z = 0
-        textMesh.rotateX(-railAngle)
+          textMesh.position.x = newBlock.positionX
+          textMesh.position.y = newBlock.endAt * Y_LENGTH_PER_SECOND
+          textMesh.position.z = 0
+          textMesh.rotateX(-railAngle)
 
-        refBlockMeshes.current[newBlock.id] = textMesh
-        refBoard.current.add(textMesh)
+          refBlockMeshes.current[newBlock.id] = textMesh
+          refBoard.current.add(textMesh)
+
+          lastBlockDropTime.current = timer.current
+        }
       }
 
       if (gameState.hp <= 0) {

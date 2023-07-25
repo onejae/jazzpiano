@@ -1,6 +1,6 @@
 import { BlockInfo } from './GameControlProvider'
 
-type BlockGenerator = (time: number) => BlockInfo
+export type BlockGenerator = (time: number) => BlockInfo
 interface GameState {
   score: number
   hp: number

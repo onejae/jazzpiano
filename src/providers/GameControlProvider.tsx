@@ -1,7 +1,13 @@
-import { KeyName, KeyNameIndex } from '@constants/notes'
+import { KeyName, NoteName } from '@constants/notes'
 import { ScaleIndexTable, ScaleName } from '@constants/scales'
 import { getKeyNamesFromKeyScale } from '@libs/midiControl'
-import { getMatchingCount } from '@libs/number'
+import {
+  generateUniqueId,
+  getMatchingCount,
+  getRandomElement,
+  getRandomFloat,
+  getRandomInt,
+} from '@libs/number'
 import {
   Dispatch,
   MutableRefObject,
@@ -15,7 +21,7 @@ import {
   useState,
 } from 'react'
 
-type PlayState = 'INIT' | 'PLAYING' | 'WAIT_FOR_START'
+type PlayState = 'INIT' | 'PLAYING' | 'GAMEOVER'
 
 type BlockType = 'SCALENORMAL' | 'SCALE_WITH_ENTRYNOTE'
 
@@ -32,6 +38,58 @@ export interface BlockInfo {
 
 type CandidateChangeHandler = (candidates: CandidateInfo[]) => void
 
+const keyNames: KeyName[] = [
+  'C',
+  'C#',
+  'Db',
+  'D',
+  'D#',
+  'Eb',
+  'E',
+  'F',
+  'F#',
+  'Gb',
+  'G',
+  'G#',
+  'Ab',
+  'A',
+  'A#',
+  'Bb',
+]
+
+const scaleNames = Object.keys(ScaleIndexTable)
+
+export const generateNormalScaleBlock = (time: number): BlockInfo => {
+  const newBlock: BlockInfo = {
+    id: generateUniqueId(),
+    key: getRandomElement(keyNames),
+    scaleType: getRandomElement(scaleNames) as ScaleName,
+    startNoteIndex: 0,
+    endAt: 10 + time,
+    positionX: getRandomFloat(-10, 10),
+    noteNumToHit: 8,
+    type: 'SCALENORMAL',
+  }
+
+  return newBlock
+}
+
+export const generateScaleBlockWithEntryNote = (time: number): BlockInfo => {
+  const scale = getRandomElement(scaleNames) as ScaleName
+  const newBlock: BlockInfo = {
+    id: generateUniqueId(),
+    key: getRandomElement(keyNames),
+    scaleType: scale,
+    startNoteIndex: getRandomInt(0, ScaleIndexTable[scale].length),
+    endAt: 10 + time,
+    positionX: getRandomFloat(-10, 10),
+    noteNumToHit: 8,
+    type: 'SCALE_WITH_ENTRYNOTE',
+  }
+
+  return newBlock
+}
+
 interface GameContextType {
   playState: PlayState
   setPlayState: Dispatch<SetStateAction<PlayState>>
@@ -39,11 +97,11 @@ interface GameContextType {
   refScore: MutableRefObject<number>
   timer: MutableRefObject<number>
   lastBlockDropTime: MutableRefObject<number>
-  judgeWithNewKey: (key: KeyName) => void
+  judgeWithNewNote: (note: NoteName) => void
   candidateScales: MutableRefObject<
     { score: number; key: KeyName; scale: ScaleName }[]
   >
-  compositionKeys: MutableRefObject<KeyName[]>
+  compositionNotes: MutableRefObject<NoteName[]>
   setHandleCandidateChange: (handler: CandidateChangeHandler) => void
   setHandleCandidateHit: (handler: CandidateChangeHandler) => void
   showLeaderBoard: boolean
@@ -71,16 +129,22 @@ export const GameControlProvider = (props: PropsWithChildren) => {
   const lastBlockDropTime = useRef(0)
   const lastKeyInput = useRef(0)
 
-  const compositionKeys = useRef<KeyName[]>([])
+  const compositionNotes = useRef<NoteName[]>([])
   const candidateScales = useRef<CandidateInfo[]>([])
 
   const [showLeaderBoard, setShowLeaderBoard] = useState(false)
 
   useEffect(() => {
+    if (playState === 'GAMEOVER') {
+      blocks.current = []
+    }
+  }, [playState])
+
+  useEffect(() => {
     const intervalTimer = setInterval(() => {
       if (timer.current - lastKeyInput.current > 3.5) {
         candidateScales.current = []
-        compositionKeys.current = []
+        compositionNotes.current = []
         handleCandidateChange.current(candidateScales.current)
       }
     }, 1000)
@@ -88,49 +152,86 @@ export const GameControlProvider = (props: PropsWithChildren) => {
     return () => clearInterval(intervalTimer)
   }, [])
 
-  const judgeWithNewKey = useCallback(
-    (key: KeyName) => {
-      compositionKeys.current.push(key)
+  const satisfied = (
+    candidate: CandidateInfo,
+    blockInfo: BlockInfo
+  ): boolean => {
+    return (
+      candidate.score === ScaleIndexTable[candidate.scale].length &&
+      candidate.matchCountInScale === 8
+    )
+  }
 
-      compositionKeys.current = compositionKeys.current.slice(-8)
+  const evaluate = useCallback((block: BlockInfo) => {
+    let matches = 0
+    let matchesWithDups = 0
+
+    if (block.type === 'SCALENORMAL') {
+      const keys = getKeyNamesFromKeyScale(block.key, block.scaleType)
+      const compositionKeys = compositionNotes.current.map((note) =>
+        note.slice(0, -1)
+      )
+
+      // matches = getMatchingCount(keys, compositionNotes.current)
+
+      matches = getMatchingCount(keys, compositionKeys)
+
+      // duplication in a key hallowed
+      // matchesWithDups = getMatchingCount(compositionNotes.current, keys)
+      matchesWithDups = getMatchingCount(compositionKeys, keys)
+
+      // here i am
+    }
+
+    return { matches, matchesWithDups }
+  }, [])
+
+  const judgeWithNewNote = useCallback(
+    (note: NoteName) => {
+      compositionNotes.current.push(note)
+
+      compositionNotes.current = compositionNotes.current.slice(-8)
       candidateScales.current = []
-      blocks.current.forEach((block) => {
-        const keys = getKeyNamesFromKeyScale(block.key, block.scaleType)
+      const hits = []
 
-        const matches = getMatchingCount(keys, compositionKeys.current)
-        const matchCountInScale = getMatchingCount(
-          compositionKeys.current,
-          keys
-        )
+      blocks.current.forEach((block) => {
+        const { matches, matchesWithDups } = evaluate(block)
+
+        console.log(matches, matchesWithDups)
 
         if (matches >= 5) {
-          candidateScales.current.push({
+          const candidateScale = {
             score: matches,
             key: block.key,
             scale: block.scaleType,
-            matchCountInScale: matchCountInScale,
-          })
+            matchCountInScale: matchesWithDups,
+          }
+          candidateScales.current.push(candidateScale)
+
+          if (satisfied(candidateScale, block)) {
+            hits.push(candidateScale)
+          }
         }
       })
 
       lastKeyInput.current = timer.current
       candidateScales.current.sort((a, b) => b.score - a.score)
 
-      const hits = candidateScales.current.filter(
-        (v) =>
-          v.score === ScaleIndexTable[v.scale].length &&
-          v.matchCountInScale === 8
-      )
+      // const hits = candidateScales.current.filter(
+      //   (v) =>
+      //     v.score === ScaleIndexTable[v.scale].length &&
+      //     v.matchCountInScale === 8
+      // )
 
       if (hits.length) {
         handleCandidateHit.current(hits)
         candidateScales.current = []
-        compositionKeys.current = []
+        compositionNotes.current = []
       }
 
       handleCandidateChange.current(candidateScales.current)
     },
-    [blocks]
+    [blocks, evaluate]
   )
 
   const handleCandidateChange = useRef<CandidateChangeHandler>()
@@ -158,9 +259,9 @@ export const GameControlProvider = (props: PropsWithChildren) => {
         refScore: refScore,
         timer: timer,
         lastBlockDropTime: lastBlockDropTime,
-        judgeWithNewKey: judgeWithNewKey,
+        judgeWithNewNote: judgeWithNewNote,
         candidateScales: candidateScales,
-        compositionKeys: compositionKeys,
+        compositionNotes: compositionNotes,
         setHandleCandidateChange: setHandleCandidateChange,
         setHandleCandidateHit: setHandleCandidateHit,
         showLeaderBoard: showLeaderBoard,

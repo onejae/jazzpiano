@@ -1,17 +1,17 @@
 import { KEY_NUM, START_MIDI_KEY } from '@constants/keys'
-import { KeyNameIndex } from '@constants/notes'
+import { KeyNameIndex, NoteName } from '@constants/notes'
 import { KeyName, PitchIndex } from '@constants/notes'
 import { ScaleIndexTable, ScaleName } from '@constants/scales'
 
 export class KeyModel {
   midiNumber: number
   octave: number
-  noteName: KeyName
+  keyName: KeyName
   pressed: boolean
 
   constructor(midiNumber: number) {
     this.midiNumber = midiNumber
-    this.noteName = KeyModel.getNoteFromMidiNumber(midiNumber)
+    this.keyName = KeyModel.getNoteNameFromMidiNumber(midiNumber) as KeyName
     this.octave = KeyModel.getOctaveFromMidiNumber(midiNumber)
     this.pressed = false
   }
@@ -20,10 +20,7 @@ export class KeyModel {
     return Math.floor(midiNumber / 12 - 1)
   }
 
-  static getNoteFromMidiNumber = (
-    midiNumber: number,
-    withOctave = true
-  ): KeyName => {
+  static getNoteNameFromMidiNumber = (midiNumber: number): NoteName => {
     const PitchName = [
       'C',
       'C#',
@@ -42,9 +39,28 @@ export class KeyModel {
     const index = midiNumber % 12
 
     return (PitchName[index] +
-      (withOctave
-        ? KeyModel.getOctaveFromMidiNumber(midiNumber).toString()
-        : '')) as KeyName
+      KeyModel.getOctaveFromMidiNumber(midiNumber).toString()) as NoteName
+  }
+
+  static getKeyNameFromMidiNumber = (midiNumber: number): KeyName => {
+    const PitchName = [
+      'C',
+      'C#',
+      'D',
+      'D#',
+      'E',
+      'F',
+      'F#',
+      'G',
+      'G#',
+      'A',
+      'A#',
+      'B',
+    ]
+
+    const index = midiNumber % 12
+
+    return PitchName[index] as KeyName
   }
 
   getPitchIndex(): PitchIndex {
@@ -87,7 +103,8 @@ export const getMidiNumbersFromKeyScale = (
 
   const keyIndex = KeyNameIndex[key]
 
-  return indexes.map((index) => (index + keyIndex) % 12).sort((a, b) => a - b)
+  // return indexes.map((index) => (index + keyIndex) % 12).sort((a, b) => a - b)
+  return indexes.map((index) => (index + keyIndex) % 12)
 }
 
 export const getKeyNamesFromKeyScale = (
@@ -96,9 +113,7 @@ export const getKeyNamesFromKeyScale = (
 ): KeyName[] => {
   const indexes = getMidiNumbersFromKeyScale(key, scale)
 
-  return indexes.map((index) =>
-    KeyModel.getNoteFromMidiNumber(index % 12, false)
-  )
+  return indexes.map((index) => KeyModel.getKeyNameFromMidiNumber(index % 12))
 }
 
 keyModels.forEach((keyModel) => {

@@ -13,15 +13,12 @@ import * as THREE from 'three'
 import { KeyName } from '@constants/notes'
 import { ScaleIndexTable, ScaleName } from '@constants/scales'
 import { KeyModel } from '@libs/midiControl'
-import {
-  generateUniqueId,
-  getRandomElement,
-  getRandomFloat,
-} from '@libs/number'
 import { Box, Button } from '@mui/material'
 import {
   BlockInfo,
   CandidateInfo,
+  generateNormalScaleBlock,
+  generateScaleBlockWithEntryNote,
   useGame,
 } from '@providers/GameControlProvider'
 
@@ -30,16 +27,22 @@ import { Mesh, MeshToonMaterial } from 'three'
 import { TextGeometry as TextGeometryPure } from 'three/addons/geometries/TextGeometry.js'
 import { Font, FontLoader } from 'three/addons/loaders/FontLoader.js'
 import { MovingStars } from '@components/InfiniteBackround'
-import { gameState } from '@providers/GameState'
+import { BlockGenerator, gameState } from '@providers/GameState'
 import ParticleExplosion from '@components/ParicleExplosion'
 import LeaderBoard from '@components/LeaderBoard'
 import { ComboBox } from '@components/ComboBox'
+import { getKeyNamesFromKeyScale } from '@libs/midiControl'
 
 const Y_LENGTH_PER_SECOND = 5
 
 const loader = new FontLoader()
 
 let blockFont: Font = null
+
+gameState.blockGenerators.push(
+  generateNormalScaleBlock,
+  generateScaleBlockWithEntryNote
+)
 
 loader.load(
   // resource URL
@@ -114,27 +117,6 @@ const GameButtons = () => {
     </Box>
   )
 }
-
-const keyNames: KeyName[] = [
-  'C',
-  'C#',
-  'Db',
-  'D',
-  'D#',
-  'Eb',
-  'E',
-  'F',
-  'F#',
-  'Gb',
-  'G',
-  'G#',
-  'Ab',
-  'A',
-  'A#',
-  'Bb',
-]
-
-const scaleNames = Object.keys(ScaleIndexTable)
 
 const ScorePanel = () => {
   const [scoreToRender, setScore] = useState(gameState.score)
@@ -226,7 +208,7 @@ const GaugeBar = (props: ThreeElements['group']) => {
 }
 const CandidateComposition = () => {
   const [candidateStrings, setCandidateStrings] = useState([])
-  const { setHandleCandidateChange, compositionKeys } = useGame()
+  const { setHandleCandidateChange, compositionNotes } = useGame()
 
   const handleCandidateChange = useCallback((candidates: CandidateInfo[]) => {
     setCandidateStrings([...candidates])
@@ -238,7 +220,7 @@ const CandidateComposition = () => {
 
   return (
     <mesh position={[-9, 0.5, 0]}>
-      {compositionKeys.current.map((key, idx) => {
+      {compositionNotes.current.map((note, idx) => {
         return (
           <RText
             key={idx}
@@ -248,7 +230,7 @@ const CandidateComposition = () => {
             anchorX="center"
             anchorY="middle"
           >
-            {key}
+            {note}
           </RText>
         )
       })}
@@ -272,6 +254,8 @@ const CandidateComposition = () => {
   )
 }
 
+const blockMeshs: { [key: string]: THREE.Mesh } = {}
+
 const GamePlayBoard = () => {
   const {
     playState,
@@ -283,8 +267,6 @@ const GamePlayBoard = () => {
   } = useGame()
   const refBoard = useRef<THREE.Group>(null!)
   const { railAngle } = useTransport()
-  const refBlockMeshes = useRef<{ [key: string]: THREE.Mesh }>({})
-  const particlesRef = useRef([])
   const [explosions, setExplosions] = useState([])
   const refLastHitTime = useRef(0)
 
@@ -305,23 +287,24 @@ const GamePlayBoard = () => {
           refLastHitTime.current = timer.current
 
           setExplosions((prevExplosions) => {
-            refBlockMeshes.current[id].geometry.computeBoundingBox()
-            const center = refBlockMeshes.current[
-              id
-            ].geometry.boundingBox.getCenter(new THREE.Vector3())
+            blockMeshs[id].geometry.computeBoundingBox()
+
+            const center = blockMeshs[id].geometry.boundingBox.getCenter(
+              new THREE.Vector3()
+            )
             return [
               ...prevExplosions,
               {
                 position: [
-                  refBlockMeshes.current[id].position.x + center.x,
-                  refBlockMeshes.current[id].position.y -
+                  blockMeshs[id].position.x + center.x,
+                  blockMeshs[id].position.y -
                     Y_LENGTH_PER_SECOND * timer.current,
-                  refBlockMeshes.current[id].position.z,
+                  blockMeshs[id].position.z,
                 ],
               },
             ]
           })
-          refBoard.current.remove(refBlockMeshes.current[id])
+          refBoard.current.remove(blockMeshs[id])
         })
 
         blocks.current = remains
@@ -335,22 +318,81 @@ const GamePlayBoard = () => {
     setHandleCandidateHit(handleCandidateHit)
   }, [handleCandidateHit, setHandleCandidateHit])
 
-  const generateNewBlock = useCallback((time: number): BlockInfo => {
-    const newBlock: BlockInfo = {
-      id: generateUniqueId(),
-      key: getRandomElement(keyNames),
-      scaleType: getRandomElement(scaleNames) as ScaleName,
-      startNoteIndex: 0,
-      endAt: 8 + time,
-      positionX: getRandomFloat(-10, 10),
-      noteNumToHit: 8,
-      type: 'SCALENORMAL',
+  // level design
+  const generateBlock = useCallback((time: number): BlockInfo => {
+    let generator: BlockGenerator = null
+
+    if (time < 30) {
+      generator = gameState.blockGenerators[0]
+    } else {
+      generator = gameState.blockGenerators[1]
     }
 
-    return newBlock
+    return generator(time)
   }, [])
 
+  const generateMeshFromBlockInfo = useCallback(
+    (blockInfo: BlockInfo) => {
+      const materials = [
+        new MeshToonMaterial({ color: 0xff0000 }), // front
+        new MeshToonMaterial({ color: 0xffff00 }), // side
+      ]
+
+      const geo = new TextGeometryPure(
+        `${blockInfo.key} ${blockInfo.scaleType}`,
+        {
+          size: 1,
+          height: 0.2,
+          curveSegments: 2,
+          font: blockFont,
+          bevelEnabled: true,
+          bevelSize: 0.2,
+          bevelThickness: 0.1,
+        }
+      )
+
+      const textMesh = new Mesh(geo, materials)
+
+      textMesh.position.x = blockInfo.positionX
+      textMesh.position.y = blockInfo.endAt * Y_LENGTH_PER_SECOND
+      textMesh.position.z = 0
+
+      if (blockInfo.type === 'SCALE_WITH_ENTRYNOTE') {
+        const materials = [
+          new MeshToonMaterial({ color: 0xff0000 }), // front
+          new MeshToonMaterial({ color: 0xff0000 }), // side
+        ]
+        const startKeyName = getKeyNamesFromKeyScale(
+          blockInfo.key,
+          blockInfo.scaleType
+        )[blockInfo.startNoteIndex]
+
+        const geo = new TextGeometryPure(`from ${startKeyName}`, {
+          size: 0.7,
+          height: 0.2,
+          curveSegments: 2,
+          font: blockFont,
+        })
+        const noteMesh = new Mesh(geo, materials)
+        noteMesh.position.set(0, -1, 0)
+        textMesh.add(noteMesh)
+      }
+
+      textMesh.rotateX(-railAngle)
+
+      return textMesh
+    },
+    [railAngle]
+  )
+
   const speed = 1
+
+  const processGameOver = () => {
+    Object.keys(blockMeshs).forEach((key) => {
+      refBoard.current.remove(blockMeshs[key])
+    })
+    setPlayState('GAMEOVER')
+  }
 
   useFrame((_state, delta) => {
     if (playState === 'PLAYING') {
@@ -361,7 +403,7 @@ const GamePlayBoard = () => {
       gameState.hp -= touches.length * 5
 
       touches.forEach((blockInfo) => {
-        const blockMesh = refBlockMeshes.current[blockInfo.id]
+        const blockMesh = blockMeshs[blockInfo.id]
 
         refBoard.current.remove(blockMesh)
         gameState.combo = 0
@@ -389,50 +431,25 @@ const GamePlayBoard = () => {
       delta *= speed
       timer.current += delta
 
-      // add new block
       if (
         lastBlockDropTime.current === 0 ||
         timer.current - lastBlockDropTime.current >= 3
       ) {
-        const newBlock = generateNewBlock(timer.current)
+        const newBlock = generateBlock(timer.current)
 
         if (newBlock) {
           blocks.current.push(newBlock)
 
-          const materials = [
-            new MeshToonMaterial({ color: 0xff0000 }), // front
-            new MeshToonMaterial({ color: 0xffff00 }), // side
-          ]
-
-          const geo = new TextGeometryPure(
-            `${newBlock.key} ${newBlock.scaleType}`,
-            {
-              size: 1,
-              height: 0.2,
-              curveSegments: 2,
-              font: blockFont,
-              bevelEnabled: true,
-              bevelSize: 0.2,
-              bevelThickness: 0.1,
-            }
-          )
-
-          const textMesh = new Mesh(geo, materials)
-
-          textMesh.position.x = newBlock.positionX
-          textMesh.position.y = newBlock.endAt * Y_LENGTH_PER_SECOND
-          textMesh.position.z = 0
-          textMesh.rotateX(-railAngle)
-
-          refBlockMeshes.current[newBlock.id] = textMesh
-          refBoard.current.add(textMesh)
+          const blockMesh = generateMeshFromBlockInfo(newBlock)
+          blockMeshs[newBlock.id] = blockMesh
+          refBoard.current.add(blockMesh)
 
           lastBlockDropTime.current = timer.current
         }
       }
 
       if (gameState.hp <= 0) {
-        setPlayState('WAIT_FOR_START')
+        processGameOver()
       }
 
       refBoard.current.position.setY(-Y_LENGTH_PER_SECOND * timer.current)
@@ -471,14 +488,14 @@ const Background = () => {
 
 const ImprovisationGame = () => {
   const { setHandleMidiNoteDown } = useMidiControl()
-  const { judgeWithNewKey, showLeaderBoard, setShowLeaderBoard, timer } =
+  const { judgeWithNewNote, showLeaderBoard, setShowLeaderBoard, timer } =
     useGame()
 
   useEffect(() => {
     setHandleMidiNoteDown((midiNumber: number) => {
-      judgeWithNewKey(KeyModel.getNoteFromMidiNumber(midiNumber, false))
+      judgeWithNewNote(KeyModel.getNoteNameFromMidiNumber(midiNumber))
     })
-  }, [judgeWithNewKey, setHandleMidiNoteDown])
+  }, [judgeWithNewNote, setHandleMidiNoteDown])
 
   return (
     <Box display="flex" flexDirection={'column'}>

@@ -89,8 +89,8 @@ export const ComboBox = (args: ThreeElements['mesh']) => {
       <group position={groupPosition}>
         <Text
           letterSpacing={0.2}
-          outlineWidth={0.01}
-          outlineColor={'yellow'}
+          outlineWidth={0.1}
+          outlineColor={'black'}
           strokeWidth={0.3}
           strokeColor={'yellow'}
           scale={numberScale}
@@ -104,6 +104,8 @@ export const ComboBox = (args: ThreeElements['mesh']) => {
         </Text>
         <Text
           scale={[1, 1, 1]}
+          outlineWidth={0.1}
+          outlineColor={'black'}
           color={'white'}
           position={[0.8, 0, 0]}
           rotation={[0, 0.9, 0.1]}

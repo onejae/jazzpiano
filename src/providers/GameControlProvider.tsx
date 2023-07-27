@@ -181,6 +181,8 @@ export const GameControlProvider = (props: PropsWithChildren) => {
       matchesWithDups = getMatchingCount(compositionKeys, keys)
 
       // here i am
+    } else if (block.type === 'SCALE_WITH_ENTRYNOTE') {
+      console.log(compositionNotes)
     }
 
     return { matches, matchesWithDups }

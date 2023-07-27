@@ -10,8 +10,6 @@ import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry'
 extend({ TextGeometry })
 
 import * as THREE from 'three'
-import { KeyName } from '@constants/notes'
-import { ScaleIndexTable, ScaleName } from '@constants/scales'
 import { KeyModel } from '@libs/midiControl'
 import { Box, Button } from '@mui/material'
 import {

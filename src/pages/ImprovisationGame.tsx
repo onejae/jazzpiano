@@ -321,7 +321,7 @@ const GamePlayBoard = () => {
     let generator: BlockGenerator = null
 
     if (time < 30) {
-      generator = gameState.blockGenerators[0]
+      generator = gameState.blockGenerators[1]
     } else {
       generator = gameState.blockGenerators[1]
     }
@@ -496,12 +496,13 @@ const ImprovisationGame = () => {
   }, [judgeWithNewNote, setHandleMidiNoteDown])
 
   return (
-    <Box display="flex" flexDirection={'column'}>
-      <Box flexGrow={1}>
+    <Box display="flex" flexDirection={'column'} minHeight="100%">
+      <Box flexGrow={1} minHeight="100%">
         <TransportProvider>
           <div
             style={{
               width: '100%',
+
               justifyContent: 'center',
               display: 'flex',
             }}
@@ -509,7 +510,7 @@ const ImprovisationGame = () => {
             <div
               style={{
                 width: '100vw',
-                height: 'calc(60vh)',
+                height: 'calc(100vh - 100px)',
                 backgroundColor: 'white',
               }}
             >
@@ -518,8 +519,8 @@ const ImprovisationGame = () => {
                   gl.localClippingEnabled = true
                 }}
                 camera={{
-                  position: [0, 0, 13],
-                  fov: 45,
+                  position: [0, 0, 15],
+                  fov: 55,
                   near: 0.1,
                   far: 400,
                 }}

@@ -157,8 +157,8 @@ export const GameControlProvider = (props: PropsWithChildren) => {
     blockInfo: BlockInfo
   ): boolean => {
     return (
-      candidate.score === ScaleIndexTable[candidate.scale].length &&
-      candidate.matchCountInScale === 8
+      candidate.score >= ScaleIndexTable[candidate.scale].length &&
+      candidate.matchCountInScale >= 8
     )
   }
 
@@ -172,17 +172,29 @@ export const GameControlProvider = (props: PropsWithChildren) => {
         note.slice(0, -1)
       )
 
-      // matches = getMatchingCount(keys, compositionNotes.current)
-
       matches = getMatchingCount(keys, compositionKeys)
-
       // duplication in a key hallowed
-      // matchesWithDups = getMatchingCount(compositionNotes.current, keys)
       matchesWithDups = getMatchingCount(compositionKeys, keys)
 
       // here i am
     } else if (block.type === 'SCALE_WITH_ENTRYNOTE') {
-      console.log(compositionNotes)
+      if (compositionNotes.current.length >= block.noteNumToHit) {
+        const lastNotes = compositionNotes.current.slice(-block.noteNumToHit)
+
+        const startKeyName = getKeyNamesFromKeyScale(
+          block.key,
+          block.scaleType
+        )[block.startNoteIndex]
+        if (lastNotes[0].slice(0, -1) === startKeyName) {
+          const keys = getKeyNamesFromKeyScale(block.key, block.scaleType)
+          const compositionKeys = compositionNotes.current.map((note) =>
+            note.slice(0, -1)
+          )
+
+          matches = getMatchingCount(keys, compositionKeys)
+          matchesWithDups = getMatchingCount(compositionKeys, keys)
+        }
+      }
     }
 
     return { matches, matchesWithDups }

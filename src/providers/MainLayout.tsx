@@ -267,7 +267,7 @@ const MainLayout = () => {
               width: '100%',
               borderRadius: 0,
               borderBottom: 'solid 1px #EAEAEA',
-              // height: 60,
+              maxHeight: 60,
             }}
             position="sticky"
             elevation={0}
@@ -292,8 +292,8 @@ const MainLayout = () => {
                 <Button sx={{ minWidth: 100 }}>Sign in</Button>
               </Box>
             </Toolbar>
+            <LoadingScreen />
           </AppBar>
-          <LoadingScreen />
           <Box
             component="main"
             display="flex"
@@ -301,10 +301,10 @@ const MainLayout = () => {
             justifyContent="center"
             alignItems={'center'}
             sx={{ p: 2 }}
-            minHeight={`calc(100vh - 80px)`}
+            minHeight={`calc(100vh - 60px)`}
             minWidth={`calc(100vw - ${drawerWidth})`}
           >
-            <Box sx={{ width: '100%' }}>
+            <Box sx={{ width: '100%', height: 'calc(100vh - 100px)' }}>
               <Outlet />
             </Box>
           </Box>

@@ -229,12 +229,6 @@ export const GameControlProvider = (props: PropsWithChildren) => {
       lastKeyInput.current = timer.current
       candidateScales.current.sort((a, b) => b.score - a.score)
 
-      // const hits = candidateScales.current.filter(
-      //   (v) =>
-      //     v.score === ScaleIndexTable[v.scale].length &&
-      //     v.matchCountInScale === 8
-      // )
-
       if (hits.length) {
         handleCandidateHit.current(hits)
         candidateScales.current = []

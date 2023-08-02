@@ -78,7 +78,7 @@ for (let lastX = 0, i = 0; i < keyModels.length; i++) {
     w: w,
     h: h,
     d: d,
-    name: key.noteName,
+    name: key.keyName,
     color: key.isWhiteKey() ? 'white' : 'black',
   }
 
@@ -211,7 +211,7 @@ export const VirtualPiano = (props: ThreeElements['mesh']) => {
               anchorX="center"
               anchorY="middle"
             >
-              {key.noteName}
+              {key.keyName}
             </Text>
           </mesh>
         )

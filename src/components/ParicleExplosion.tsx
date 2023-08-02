@@ -2,7 +2,9 @@ import { useRef, useEffect } from 'react'
 import { ThreeElements, useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
-const ParticleExplosion = (args: ThreeElements['group']) => {
+const ParticleExplosion = (
+  args: ThreeElements['group'] & { color: string }
+) => {
   const group = useRef<THREE.Group>()
   const particles = useRef([])
 
@@ -12,7 +14,7 @@ const ParticleExplosion = (args: ThreeElements['group']) => {
       if (group.current) {
         const particle = new THREE.Mesh(
           new THREE.BoxGeometry(1, 1, 1),
-          new THREE.MeshBasicMaterial({ color: 0xffffff })
+          new THREE.MeshBasicMaterial({ color: args.color || 0xffffff })
         )
         particle.position.set(Math.random() * 60 - 30, Math.random() * 2 - 1, 0)
         group.current.add(particle)

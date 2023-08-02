@@ -65,8 +65,8 @@ export const generateNormalScaleBlock = (time: number): BlockInfo => {
     key: getRandomElement(keyNames),
     scaleType: getRandomElement(scaleNames) as ScaleName,
     startNoteIndex: 0,
-    endAt: 10 + time,
-    positionX: getRandomFloat(-10, 10),
+    endAt: 15 + time,
+    positionX: getRandomFloat(-13, 13),
     noteNumToHit: 8,
     type: 'SCALENORMAL',
   }
@@ -81,8 +81,8 @@ export const generateScaleBlockWithEntryNote = (time: number): BlockInfo => {
     key: getRandomElement(keyNames),
     scaleType: scale,
     startNoteIndex: getRandomInt(0, ScaleIndexTable[scale].length),
-    endAt: 10 + time,
-    positionX: getRandomFloat(-10, 10),
+    endAt: 15 + time,
+    positionX: getRandomFloat(-13, 13),
     noteNumToHit: 8,
     type: 'SCALE_WITH_ENTRYNOTE',
   }
@@ -210,8 +210,6 @@ export const GameControlProvider = (props: PropsWithChildren) => {
 
       blocks.current.forEach((block) => {
         const { matches, matchesWithDups } = evaluate(block)
-
-        console.log(matches, matchesWithDups)
 
         if (matches >= 5) {
           const candidateScale = {

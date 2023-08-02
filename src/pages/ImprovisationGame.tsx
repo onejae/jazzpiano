@@ -35,6 +35,8 @@ const Y_LENGTH_PER_SECOND = 5
 
 const loader = new FontLoader()
 
+const touchLinePosition = new THREE.Vector3(0, -3, 0)
+
 let blockFont: Font = null
 
 gameState.blockGenerators.push(
@@ -126,7 +128,7 @@ const ScorePanel = () => {
   })
 
   return (
-    <mesh>
+    <mesh position={[0, 2, 0]}>
       <RText
         letterSpacing={0.2}
         outlineWidth={0.1}
@@ -352,7 +354,8 @@ const GamePlayBoard = () => {
       const textMesh = new Mesh(geo, materials)
 
       textMesh.position.x = blockInfo.positionX
-      textMesh.position.y = blockInfo.endAt * Y_LENGTH_PER_SECOND
+      textMesh.position.y =
+        touchLinePosition.y + blockInfo.endAt * Y_LENGTH_PER_SECOND
       textMesh.position.z = 0
 
       if (blockInfo.type === 'SCALE_WITH_ENTRYNOTE') {
@@ -419,6 +422,7 @@ const GamePlayBoard = () => {
                 blockMesh.position.y - Y_LENGTH_PER_SECOND * timer.current,
                 blockMesh.position.z,
               ],
+              color: 'red',
             },
           ]
         })
@@ -462,7 +466,7 @@ const GamePlayBoard = () => {
           <ParticleExplosion
             key={index}
             position={explosion.position}
-            // color={explosion.color}
+            color={explosion.color}
             // onExplosionFinished={() => removeExplosion(index)}
           />
         )
@@ -527,11 +531,11 @@ const ImprovisationGame = () => {
               >
                 <ambientLight position={[-3, 0, -3]} intensity={0.9} />
                 <pointLight position={[-13, 10, 0]} intensity={0.9} />
-                <GaugeBar position={[-11, 5, 0]} />
+                <GaugeBar position={[-11, 6.5, 0]} />
                 <TransportGroup>
                   <Background />
                   <GamePlayBoard />
-                  <VirtualPiano />
+                  <VirtualPiano position={touchLinePosition} />
                 </TransportGroup>
                 <CandidateComposition />
                 <ScorePanel />

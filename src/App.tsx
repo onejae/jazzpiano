@@ -12,6 +12,9 @@ import { RealPiano } from '@components/RealPiano'
 const baseURL = import.meta.env.VITE_API_URL
 
 axios.defaults.baseURL = baseURL
+axios.defaults.headers.common['Authorization'] =
+  'Bearer ' + import.meta.env.VITE_API_KEY
+axios.defaults.withCredentials = true
 
 const wrapWithMidiControl = (el) => (
   <MidiControlProvider>

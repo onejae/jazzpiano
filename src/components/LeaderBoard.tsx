@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Box, Button, Tabs, Tab, Typography } from '@mui/material'
+import axios from 'axios'
 
 const LeaderBoard = ({ open, users, onClose }) => {
   const [currentTab, setCurrentTab] = useState(0)
@@ -7,6 +8,15 @@ const LeaderBoard = ({ open, users, onClose }) => {
   const handleTabChange = (event, newValue) => {
     setCurrentTab(newValue)
   }
+
+  const fetchScore = useCallback(async () => {
+    const ranks = await axios.get('/ranks/', { withCredentials: true })
+    console.log(ranks)
+  }, [])
+
+  useEffect(() => {
+    fetchScore().then()
+  }, [fetchScore])
 
   if (!open) return <></>
 
@@ -24,14 +34,16 @@ const LeaderBoard = ({ open, users, onClose }) => {
       <Box display={'flex'}>
         <Typography p={1}></Typography>
         <Button color="inherit" onClick={onClose} sx={{ marginLeft: 'auto' }}>
-          Close
+          X
         </Button>
       </Box>
-      <Tabs value={currentTab} onChange={handleTabChange}>
-        <Tab label="Scale" />
-        <Tab label="Chord" />
-        <Tab label="Mixed" />
-      </Tabs>
+      <Box paddingLeft={3}>
+        <Tabs value={currentTab} onChange={handleTabChange}>
+          <Tab label="Scale" />
+          <Tab label="Chord" disabled />
+          <Tab label="Mixed" disabled />
+        </Tabs>
+      </Box>
       <Box sx={{ p: 3 }}>
         {users.map((user, index) => (
           <Box display="flex">

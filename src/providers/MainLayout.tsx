@@ -300,11 +300,15 @@ const MainLayout = () => {
             flexDirection={'row'}
             justifyContent="center"
             alignItems={'center'}
-            sx={{ p: 2 }}
             minHeight={`calc(100vh - 60px)`}
             minWidth={`calc(100vw - ${drawerWidth})`}
           >
-            <Box sx={{ width: '100%', height: 'calc(100vh - 100px)' }}>
+            <Box
+              sx={{
+                width: '100%',
+                height: 'calc(100vh - 100px)',
+              }}
+            >
               <Outlet />
             </Box>
           </Box>

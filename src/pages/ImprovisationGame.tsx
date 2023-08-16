@@ -81,7 +81,7 @@ const GameButtons = () => {
 
   const handlePlayButton = useCallback(() => {
     gameState.score = 0
-    gameState.hp = 100
+    gameState.hp = 10
     setPlayState('PLAYING')
   }, [setPlayState])
 
@@ -264,6 +264,7 @@ const GamePlayBoard = () => {
     timer,
     lastBlockDropTime,
     setHandleCandidateHit,
+    setShowLeaderBoard,
   } = useGame()
   const refBoard = useRef<THREE.Group>(null!)
   const { railAngle } = useTransport()
@@ -393,6 +394,7 @@ const GamePlayBoard = () => {
       refBoard.current.remove(blockMeshs[key])
     })
     setPlayState('GAMEOVER')
+    setShowLeaderBoard(true)
   }
 
   useFrame((_state, delta) => {

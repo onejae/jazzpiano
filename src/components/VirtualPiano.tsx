@@ -83,7 +83,8 @@ for (let lastX = 0, i = 0; i < keyModels.length; i++) {
   }
 
   lastX = lastX + (key.isWhiteKey() ? WHITEKEY_WIDTH + PADDING_X : 0)
-  TOTAL_WIDTH = lastX
+
+  if (i < keyModels.length - 1) TOTAL_WIDTH = lastX
 }
 
 export const VirtualPiano = (props: ThreeElements['mesh']) => {
@@ -184,8 +185,7 @@ export const VirtualPiano = (props: ThreeElements['mesh']) => {
   }, [handleKeyDown, handleKeyUp])
 
   return (
-    <group position={props.position}>
-      <mesh position={[0, WHITEKEY_HEIGHT * 0.5, 0]}></mesh>
+    <group position={props.position} scale={0.9}>
       {keyModels.map((key: KeyModel, idx) => {
         const renderSpace = KeyRenderSpace[key.midiNumber]
         return (

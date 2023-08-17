@@ -2,8 +2,14 @@ import { useCallback, useEffect, useState } from 'react'
 import { Box, Button, Tabs, Tab, Typography } from '@mui/material'
 import axios from 'axios'
 
-const LeaderBoard = ({ open, users, onClose }) => {
+interface ScoreRow {
+  name: string
+  score: number
+}
+
+const LeaderBoard = ({ open, onClose }) => {
   const [currentTab, setCurrentTab] = useState(0)
+  const [scoreRows, setScoreRows] = useState<ScoreRow[]>([])
 
   const handleTabChange = (event, newValue) => {
     setCurrentTab(newValue)
@@ -11,7 +17,8 @@ const LeaderBoard = ({ open, users, onClose }) => {
 
   const fetchScore = useCallback(async () => {
     const ranks = await axios.get('/ranks/', { withCredentials: true })
-    console.log(ranks)
+
+    setScoreRows(ranks.data)
   }, [])
 
   useEffect(() => {
@@ -45,7 +52,7 @@ const LeaderBoard = ({ open, users, onClose }) => {
         </Tabs>
       </Box>
       <Box sx={{ p: 3 }}>
-        {users.map((user, index) => (
+        {scoreRows.map((user, index) => (
           <Box display="flex">
             <Typography flexGrow={1} key={index} variant="body1">
               {user.name}

@@ -548,11 +548,6 @@ const ImprovisationGame = () => {
           <GameButtons />
           <LeaderBoard
             open={showLeaderBoard}
-            users={[
-              { name: 'wonjae lee', score: 14832 },
-              { name: 'suzy', score: 9999 },
-              { name: 'IU', score: 323 },
-            ]}
             onClose={() => setShowLeaderBoard(false)}
           />
         </TransportProvider>

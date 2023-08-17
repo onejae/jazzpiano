@@ -27,6 +27,10 @@ const wrapWithGameControl = (el) => (
   <GameControlProvider>{el}</GameControlProvider>
 )
 
+const wrapWithScoreProvider = (el) => (
+  <GameScoreProvider>{el}</GameScoreProvider>
+)
+
 const router = createBrowserRouter([
   {
     path: '/',

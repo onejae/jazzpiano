@@ -16,7 +16,7 @@ const LeaderBoard = ({ open, onClose }) => {
   }
 
   const fetchScore = useCallback(async () => {
-    const ranks = await axios.get('/ranks/', { withCredentials: true })
+    const ranks = await axios.get('/ranks/')
 
     setScoreRows(ranks.data)
   }, [])

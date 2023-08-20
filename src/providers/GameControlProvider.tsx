@@ -81,7 +81,7 @@ export const generateScaleBlockWithEntryNote = (time: number): BlockInfo => {
     key: getRandomElement(keyNames),
     scaleType: scale,
     startNoteIndex: getRandomInt(0, ScaleIndexTable[scale].length),
-    endAt: 15 + time,
+    endAt: 2 + time,
     positionX: getRandomFloat(-13, 13),
     noteNumToHit: 8,
     type: 'SCALE_WITH_ENTRYNOTE',
@@ -105,7 +105,9 @@ interface GameContextType {
   setHandleCandidateChange: (handler: CandidateChangeHandler) => void
   setHandleCandidateHit: (handler: CandidateChangeHandler) => void
   showLeaderBoard: boolean
+  showScoreInput: boolean
   setShowLeaderBoard: Dispatch<SetStateAction<boolean>>
+  setShowScoreInput: Dispatch<SetStateAction<boolean>>
 }
 
 const gameContext = createContext<GameContextType>(null!)
@@ -133,6 +135,7 @@ export const GameControlProvider = (props: PropsWithChildren) => {
   const candidateScales = useRef<CandidateInfo[]>([])
 
   const [showLeaderBoard, setShowLeaderBoard] = useState(false)
+  const [showScoreInput, setShowScoreInput] = useState(false)
 
   useEffect(() => {
     if (playState === 'GAMEOVER') {
@@ -271,7 +274,9 @@ export const GameControlProvider = (props: PropsWithChildren) => {
         setHandleCandidateChange: setHandleCandidateChange,
         setHandleCandidateHit: setHandleCandidateHit,
         showLeaderBoard: showLeaderBoard,
+        showScoreInput: showScoreInput,
         setShowLeaderBoard: setShowLeaderBoard,
+        setShowScoreInput: setShowScoreInput,
       }}
     >
       {props.children}

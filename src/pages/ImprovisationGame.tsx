@@ -30,6 +30,8 @@ import ParticleExplosion from '@components/ParicleExplosion'
 import LeaderBoard from '@components/LeaderBoard'
 import { ComboBox } from '@components/ComboBox'
 import { getKeyNamesFromKeyScale } from '@libs/midiControl'
+import { useScore } from '@providers/GameScoreProvider'
+import ScoreInput from '@components/ScoreInput'
 
 const Y_LENGTH_PER_SECOND = 5
 
@@ -265,11 +267,13 @@ const GamePlayBoard = () => {
     lastBlockDropTime,
     setHandleCandidateHit,
     setShowLeaderBoard,
+    setShowScoreInput,
   } = useGame()
   const refBoard = useRef<THREE.Group>(null!)
   const { railAngle } = useTransport()
   const [explosions, setExplosions] = useState([])
   const refLastHitTime = useRef(0)
+  const { getRanks } = useScore()
 
   const handleCandidateHit = useCallback(
     (hits: CandidateInfo[]) => {
@@ -393,8 +397,25 @@ const GamePlayBoard = () => {
     Object.keys(blockMeshs).forEach((key) => {
       refBoard.current.remove(blockMeshs[key])
     })
+
     setPlayState('GAMEOVER')
-    setShowLeaderBoard(true)
+
+    let showInput = false
+    getRanks().then((ranks) => {
+      gameState.score = 0
+
+      ranks.forEach((e, idx) => {
+        if (e.score >= gameState.score) {
+          showInput = true
+        }
+      })
+
+      if (showInput) {
+        setShowScoreInput(true)
+      } else {
+        setShowLeaderBoard(true)
+      }
+    })
   }
 
   useFrame((_state, delta) => {
@@ -492,14 +513,20 @@ const Background = () => {
 
 const ImprovisationGame = () => {
   const { setHandleMidiNoteDown } = useMidiControl()
-  const { judgeWithNewNote, showLeaderBoard, setShowLeaderBoard, timer } =
-    useGame()
+  const {
+    judgeWithNewNote,
+    showLeaderBoard,
+    setShowLeaderBoard,
+    showScoreInput,
+  } = useGame()
 
   useEffect(() => {
     setHandleMidiNoteDown((midiNumber: number) => {
       judgeWithNewNote(KeyModel.getNoteNameFromMidiNumber(midiNumber))
     })
   }, [judgeWithNewNote, setHandleMidiNoteDown])
+
+  const { ranks } = useScore()
 
   return (
     <Box display="flex" flexDirection={'column'} minHeight="100%">
@@ -548,8 +575,10 @@ const ImprovisationGame = () => {
           <GameButtons />
           <LeaderBoard
             open={showLeaderBoard}
+            ranks={ranks}
             onClose={() => setShowLeaderBoard(false)}
           />
+          <ScoreInput open={showScoreInput} />
         </TransportProvider>
       </Box>
     </Box>

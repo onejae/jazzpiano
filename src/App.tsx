@@ -8,6 +8,7 @@ import ImprovisationGame from '@pages/ImprovisationGame'
 import { MidiControlProvider } from '@providers/MidiControl'
 import { GameControlProvider } from '@providers/GameControlProvider'
 import { RealPiano } from '@components/RealPiano'
+import { GameScoreProvider } from '@providers/GameScoreProvider'
 
 const baseURL = import.meta.env.VITE_API_URL
 
@@ -47,7 +48,7 @@ const router = createBrowserRouter([
       {
         path: 'game',
         element: wrapWithGameControl(
-          wrapWithMidiControl(<ImprovisationGame />)
+          wrapWithScoreProvider(wrapWithMidiControl(<ImprovisationGame />))
         ),
       },
       {

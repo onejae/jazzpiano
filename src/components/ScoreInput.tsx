@@ -1,8 +1,16 @@
 import { Box, Button, TextField } from '@mui/material'
+import axios from 'axios'
+import { useCallback } from 'react'
 
 const ScoreInput = ({ open }) => {
-  open = true
+  const SubmitScore = useCallback(() => {
+    axios
+      .post('/put_score/', { name: 'tiofjaiow', score: 213128 })
+      .then((e) => console.log(e))
+  }, [])
+
   if (!open) return <></>
+
   return (
     <Box
       sx={{
@@ -16,7 +24,7 @@ const ScoreInput = ({ open }) => {
       }}
     >
       <TextField id="standard-basic" label="Name" variant="standard" />
-      <Button>Submit</Button>
+      <Button onClick={SubmitScore}>Submit</Button>
     </Box>
   )
 }

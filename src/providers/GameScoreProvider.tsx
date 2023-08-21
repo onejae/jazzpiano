@@ -1,24 +1,9 @@
-import { KeyName, NoteName } from '@constants/notes'
-import { ScaleIndexTable, ScaleName } from '@constants/scales'
-import { getKeyNamesFromKeyScale } from '@libs/midiControl'
-import {
-  generateUniqueId,
-  getMatchingCount,
-  getRandomElement,
-  getRandomFloat,
-  getRandomInt,
-} from '@libs/number'
 import axios from 'axios'
 import {
-  Dispatch,
-  MutableRefObject,
   PropsWithChildren,
-  SetStateAction,
   createContext,
   useCallback,
   useContext,
-  useEffect,
-  useRef,
   useState,
 } from 'react'
 
@@ -43,6 +28,8 @@ export const GameScoreProvider = (props: PropsWithChildren) => {
 
   const fetchScore = useCallback(async () => {
     const ranks = await axios.get('/ranks/')
+
+    console.log(ranks)
 
     setRanks(ranks.data)
 

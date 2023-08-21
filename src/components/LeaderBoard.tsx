@@ -1,11 +1,8 @@
 import { useState } from 'react'
 import { Box, Button, Tabs, Tab, Typography } from '@mui/material'
-import { useScore } from '@providers/GameScoreProvider'
 
 const LeaderBoard = ({ open, ranks, onClose }) => {
   const [currentTab, setCurrentTab] = useState(0)
-
-  // const { ranks } = useScore()
 
   const handleTabChange = (event, newValue) => {
     setCurrentTab(newValue)

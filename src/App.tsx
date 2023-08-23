@@ -1,4 +1,4 @@
-import { RouterProvider, createBrowserRouter } from 'react-router-dom'
+import { Navigate, RouterProvider, createBrowserRouter } from 'react-router-dom'
 import MainLayout from '@providers/MainLayout'
 import TwoFiveOne from '@pages/TwoFiveOne'
 import MajorScale from '@pages/Scale'
@@ -37,6 +37,13 @@ const router = createBrowserRouter([
     path: '/',
     element: <MainLayout />,
     children: [
+      { index: true, element: <Navigate to="/game" replace /> },
+      {
+        path: 'game',
+        element: wrapWithGameControl(
+          wrapWithScoreProvider(wrapWithMidiControl(<ImprovisationGame />))
+        ),
+      },
       {
         path: 'twofiveone',
         element: <TwoFiveOne />,
@@ -46,16 +53,9 @@ const router = createBrowserRouter([
         element: <Playground />,
       },
       {
-        path: 'game',
-        element: wrapWithGameControl(
-          wrapWithScoreProvider(wrapWithMidiControl(<ImprovisationGame />))
-        ),
-      },
-      {
         path: 'scale',
         children: [
           {
-            index: true,
             path: 'major',
             element: <MajorScale />,
           },

@@ -8,6 +8,8 @@ export const useAudioDropzone = () => {
   return { youtubeLink, setYoutubeLink }
 }
 
+const enableYoutube = false
+
 export const AudioDropzone = (audioProps: {
   onYoutubeLink: any
   onDrop: any
@@ -23,6 +25,7 @@ export const AudioDropzone = (audioProps: {
 
   return (
     <Box
+      color="white"
       border={1}
       sx={{ borderStyle: 'dashed' }}
       display="flex"
@@ -44,32 +47,43 @@ export const AudioDropzone = (audioProps: {
               <p style={{ textAlign: 'center' }}>
                 Drag 'n' drop midi file here, or click to select file
               </p>
-              <p style={{ textAlign: 'center', marginBottom: 0 }}>or </p>
-              <Box display="flex" justifyContent={'center'} paddingBottom={1}>
-                <TextField
-                  sx={{ minWidth: 380 }}
-                  id="standard-basic"
-                  label="Youtube link"
-                  value={youtubeLink}
-                  variant="standard"
-                  onChange={(e) => {
-                    setYoutubeLink(e.target.value)
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    e.preventDefault()
-                  }}
-                  InputProps={{
-                    endAdornment: (
-                      <Button
-                        onClick={() => audioProps.onYoutubeLink(youtubeLink)}
-                      >
-                        Process
-                      </Button>
-                    ),
-                  }}
-                />
-              </Box>
+
+              {enableYoutube && (
+                <>
+                  <p style={{ textAlign: 'center', marginBottom: 0 }}>or </p>
+                  <Box
+                    display="flex"
+                    justifyContent={'center'}
+                    paddingBottom={1}
+                  >
+                    <TextField
+                      sx={{ minWidth: 380 }}
+                      id="standard-basic"
+                      label="Youtube link"
+                      value={youtubeLink}
+                      variant="standard"
+                      onChange={(e) => {
+                        setYoutubeLink(e.target.value)
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        e.preventDefault()
+                      }}
+                      InputProps={{
+                        endAdornment: (
+                          <Button
+                            onClick={() =>
+                              audioProps.onYoutubeLink(youtubeLink)
+                            }
+                          >
+                            Process
+                          </Button>
+                        ),
+                      }}
+                    />
+                  </Box>
+                </>
+              )}
             </div>
           )
         }}

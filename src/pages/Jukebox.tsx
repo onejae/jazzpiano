@@ -19,6 +19,7 @@ import { Midi } from '@tonejs/midi'
 import { MovingStars } from '@components/InfiniteBackround'
 
 import * as THREE from 'three'
+import { PlayList } from '@components/PlayList'
 
 const touchLinePosition = new THREE.Vector3(0, -3, 0)
 
@@ -75,10 +76,22 @@ const Playground = () => {
   return (
     <Box display="flex" flexDirection={'column'}>
       <Box flexGrow={1} minHeight="100%">
-        <AudioDropzone
-          onDrop={handleDropFile}
-          onYoutubeLink={handleYoutubeLink}
-        />
+        <Box
+          position={'absolute'}
+          paddingTop={5}
+          left={['calc(50% - 120px)', 'calc(50% - 240px)']}
+          width={['240px', '480px']}
+          top={0}
+          zIndex={9999}
+        >
+          <AudioDropzone
+            onDrop={handleDropFile}
+            onYoutubeLink={handleYoutubeLink}
+          />
+        </Box>
+        <Box>
+          <PlayList />
+        </Box>
         <TransportProvider>
           <div
             style={{ width: '100%', justifyContent: 'center', display: 'flex' }}

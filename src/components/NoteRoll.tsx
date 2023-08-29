@@ -163,7 +163,7 @@ const PianoRoll = (props: PianoRollProps) => {
 
   useEffect(() => {
     if (playingState === 'stopped') {
-      generateBlockRail()
+      // generateBlockRail()
       renderInfo.current.timer = 0
     }
   }, [generateBlockRail, playingState])
@@ -291,7 +291,7 @@ const PianoRoll = (props: PianoRollProps) => {
 
   return (
     <Suspense>
-      <Background />
+      {/* <Background /> */}
       <NoteRender />
     </Suspense>
   )

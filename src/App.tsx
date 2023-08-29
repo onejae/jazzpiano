@@ -9,6 +9,7 @@ import { MidiControlProvider } from '@providers/MidiControl'
 import { GameControlProvider } from '@providers/GameControlProvider'
 import { RealPiano } from '@components/RealPiano'
 import { GameScoreProvider } from '@providers/GameScoreProvider'
+import Jukebox from '@pages/Jukebox'
 
 const baseURL = import.meta.env.VITE_API_URL
 
@@ -62,6 +63,10 @@ const router = createBrowserRouter([
         ],
       },
     ],
+  },
+  {
+    path: '/jukebox',
+    element: <Jukebox />,
   },
 ])
 

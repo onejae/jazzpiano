@@ -535,7 +535,6 @@ const ImprovisationGame = () => {
           <div
             style={{
               width: '100%',
-
               justifyContent: 'center',
               display: 'flex',
             }}

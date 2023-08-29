@@ -1,5 +1,5 @@
 import { KEY_NUM, START_MIDI_KEY } from '@constants/keys'
-import { EXCLUDE_INSTRUMENT_FAMILIES } from '@constants/midi'
+import { INCLUDE_INSTRUMENT_FAMILIES } from '@constants/midi'
 import { Midi, Track } from '@tonejs/midi'
 import { Note } from '@tonejs/midi/dist/Note'
 import axios, { AxiosResponse } from 'axios'
@@ -29,7 +29,8 @@ export const getNoteEventsFromTonejs = (midi: Midi): NoteEvent[] => {
   const noteEvents: NoteEvent[] = []
 
   midi.tracks.forEach((t: Track) => {
-    if (!EXCLUDE_INSTRUMENT_FAMILIES.includes(t.instrument.family)) {
+    // if (!EXCLUDE_INSTRUMENT_FAMILIES.includes(t.instrument.family)) {
+    if (INCLUDE_INSTRUMENT_FAMILIES.includes(t.instrument.family)) {
       t.notes.forEach((note: Note) => {
         if (
           note.midi >= START_MIDI_KEY &&

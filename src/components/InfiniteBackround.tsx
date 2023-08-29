@@ -55,7 +55,6 @@ export const MovingStars = () => {
 
   return (
     <group>
-      {/* <Stars position={[0, -10, 0]} speed={3} fade={true} radius={50} /> */}
       <Sky
         distance={950000}
         sunPosition={[1, 0, 1]}

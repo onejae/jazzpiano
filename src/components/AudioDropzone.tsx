@@ -2,6 +2,8 @@ import { Box, Button, TextField } from '@mui/material'
 import { useCallback, useState } from 'react'
 import Dropzone from 'react-dropzone'
 
+import { isMobile } from 'react-device-detect'
+
 export const useAudioDropzone = () => {
   const [youtubeLink, setYoutubeLink] = useState('')
 
@@ -25,8 +27,9 @@ export const AudioDropzone = (audioProps: {
 
   return (
     <Box
-      color="white"
+      color={['red', 'white']}
       border={1}
+      bgcolor={['#83234266', 'transparent']}
       sx={{ borderStyle: 'dashed' }}
       display="flex"
       justifyContent={'center'}
@@ -45,7 +48,9 @@ export const AudioDropzone = (audioProps: {
             <div {...props}>
               <input {...getInputProps()} />
               <p style={{ textAlign: 'center' }}>
-                Drag 'n' drop midi file here, or click to select file
+                {isMobile
+                  ? 'midi file'
+                  : "Drag 'n' drop midi file here, or click to select file"}
               </p>
 
               {enableYoutube && (

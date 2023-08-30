@@ -5,6 +5,7 @@ import { KeyModel, keyModels } from '@libs/midiControl'
 import { SplendidGrandPiano } from 'smplr'
 import { useMidiControl } from '@providers/MidiControl'
 import { Text } from '@react-three/drei'
+import { useTransport } from '@providers/TransportProvider'
 
 const KeyMidiTable: { [key: string]: number } = {
   z: 48,
@@ -99,7 +100,28 @@ export const VirtualPiano = (props: ThreeElements['mesh']) => {
     setHandlePreviewNoteUp,
   } = useMidiControl()
 
+  const { playingState } = useTransport()
+
   const [octaveShift, setOctaveShift] = useState(0)
+
+  const keyUp = (key: KeyModel) => {
+    key.pressed = false
+    refPianoKeys.current[key.midiNumber - START_MIDI_KEY].color.set(
+      keyModels[key.midiNumber - START_MIDI_KEY].isWhiteKey()
+        ? 'white'
+        : 'black'
+    )
+  }
+
+  const init = useCallback(() => {
+    keyModels.forEach((key) => keyUp(key))
+  }, [])
+
+  useEffect(() => {
+    if (playingState === 'stopped') {
+      init()
+    }
+  }, [init, playingState])
 
   const handleKeyDown = useCallback(
     (ev: KeyboardEvent) => {

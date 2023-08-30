@@ -10,10 +10,11 @@ import { GameControlProvider } from '@providers/GameControlProvider'
 import { RealPiano } from '@components/RealPiano'
 import { GameScoreProvider } from '@providers/GameScoreProvider'
 import Jukebox from '@pages/Jukebox'
+import { TransportProvider } from '@providers/TransportProvider'
 
 const baseURL = import.meta.env.VITE_API_URL
 
-axios.defaults.baseURL = baseURL
+// axios.defaults.baseURL = baseURL
 axios.defaults.headers.common['Authorization'] =
   'Bearer ' + import.meta.env.VITE_API_KEY
 axios.defaults.withCredentials = true
@@ -66,7 +67,11 @@ const router = createBrowserRouter([
   },
   {
     path: '/jukebox',
-    element: <Jukebox />,
+    element: (
+      <TransportProvider>
+        <Jukebox />
+      </TransportProvider>
+    ),
   },
 ])
 

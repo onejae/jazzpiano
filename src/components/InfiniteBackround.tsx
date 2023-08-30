@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Stars, Sky } from '@react-three/drei'
 import { generateUniqueId } from '@libs/number'

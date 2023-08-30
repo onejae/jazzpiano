@@ -1,18 +1,17 @@
 import { AudioDropzone } from '@components/AudioDropzone'
 import PianoRoll from '@components/NoteRoll'
 import { RealPiano } from '@components/RealPiano'
-import { Box } from '@mui/material'
+import { Box, Button } from '@mui/material'
 import { MidiControlProvider } from '@providers/MidiControl'
-import { TransportProvider } from '@providers/TransportProvider'
+import { useTransport } from '@providers/TransportProvider'
 import {
   getMidiFromYoutubeLink,
   getNoteEventsFromTonejs,
 } from '@services/convertService'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { NoteEvent } from 'types/midi'
 
 import { TransportGroup } from '@components/TransportGroup'
-import { TransportPanel } from '@components/TransportPanel'
 import { VirtualPiano } from '@components/VirtualPiano'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { Midi } from '@tonejs/midi'
@@ -21,7 +20,50 @@ import { MovingStars } from '@components/InfiniteBackround'
 import * as THREE from 'three'
 import { PlayItem, PlayList } from '@components/PlayList'
 
+import PlayArrowIcon from '@mui/icons-material/PlayArrow'
+import PauseIcon from '@mui/icons-material/Pause'
+import axios from 'axios'
+
 const touchLinePosition = new THREE.Vector3(0, -3, 0)
+
+const SmallTransportPanel = () => {
+  const { playingState, setPlayingState } = useTransport()
+  const handlePlayButton = useCallback(() => {
+    setPlayingState((current) => (current === 'playing' ? 'paused' : 'playing'))
+  }, [setPlayingState])
+  const handleKeyDown = useCallback(
+    (ev: KeyboardEvent) => {
+      if (ev.code === 'Space') {
+        ev.preventDefault()
+        ev.stopPropagation()
+        handlePlayButton()
+      }
+    },
+    [handlePlayButton]
+  )
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [handleKeyDown])
+
+  return (
+    <Box sx={{ backgroundColor: 'transparent', display: 'flex' }}>
+      <Box flexGrow={1}>
+        <Button onClick={handlePlayButton} sx={{ width: 200, height: 200 }}>
+          {playingState === 'playing' ? (
+            <PauseIcon sx={{ color: '#ffffff33', fontSize: 120 }} />
+          ) : (
+            <PlayArrowIcon sx={{ color: 'white', fontSize: 120 }} />
+          )}
+        </Button>
+      </Box>
+    </Box>
+  )
+}
 
 const playItems = [
   {
@@ -44,8 +86,10 @@ const playItems = [
   },
 ]
 
-const Playground = () => {
+const Jukebox = () => {
   const [noteEvents, setNoteEvents] = useState<NoteEvent[] | null>(null)
+  const { setPlayingState } = useTransport()
+  const [playingItem, setPlayingItem] = useState(null)
 
   const Background = () => {
     const timeRef = useRef(0)
@@ -94,32 +138,61 @@ const Playground = () => {
     if (files.length > 0) reader.readAsArrayBuffer(files[0])
   }, [])
 
-  const handleItemSelect = useCallback((item: PlayItem) => {
-    const request = new XMLHttpRequest()
-    request.open('GET', item.midiPath, true)
-    request.responseType = 'blob'
+  const handleItemSelect = useCallback(
+    (item: PlayItem) => {
+      if (playingItem && item.midiPath === playingItem.midiPath) {
+        return
+      }
 
-    request.onload = function () {
-      request.response.arrayBuffer().then((buf) => {
-        const midi = new Midi(buf)
+      axios
+        .get(item.midiPath, {
+          responseType: 'arraybuffer', // Set the responseType to 'arraybuffer'
+        })
+        .then((e) => {
+          const midi = new Midi(e.data)
 
-        const noteEvents = getNoteEventsFromTonejs(midi)
+          const noteEvents = getNoteEventsFromTonejs(midi)
 
-        setNoteEvents(noteEvents)
-      })
+          setNoteEvents(noteEvents)
+          setPlayingState('stopped')
+        })
+
+      // const request = new XMLHttpRequest()
+      // request.open('GET', item.midiPath, true)
+      // request.responseType = 'blob'
+
+      // request.onload = function () {
+      //   request.response.arrayBuffer().then((buf) => {
+      //     const midi = new Midi(buf)
+
+      //     const noteEvents = getNoteEventsFromTonejs(midi)
+
+      //     setNoteEvents(noteEvents)
+      //     setPlayingState('stopped')
+      //   })
+      // }
+      // request.send()
+
+      setPlayingItem(item)
+    },
+    [playingItem, setPlayingState]
+  )
+
+  useEffect(() => {
+    if (!noteEvents) {
+      handleItemSelect(playItems[0])
     }
-    request.send()
-  }, [])
+  }, [handleItemSelect, noteEvents])
 
   return (
-    <Box display="flex" flexDirection={'column'}>
-      <Box flexGrow={1} minHeight="100%">
+    <Box display="flex" flexDirection={'column'} padding={0}>
+      <Box flexGrow={1} minHeight="100%" padding={0}>
         <Box
           position={'absolute'}
           paddingTop={5}
-          left={['calc(50% - 120px)', 'calc(50% - 240px)']}
-          width={['240px', '480px']}
-          top={0}
+          left={['calc(100% - 100px)', 'calc(50% - 240px)']}
+          width={['60px', '480px']}
+          top={['calc(100% - 120px)', 0]}
           zIndex={9999}
         >
           <AudioDropzone
@@ -134,48 +207,57 @@ const Playground = () => {
         >
           <PlayList playItems={playItems} onSelect={handleItemSelect} />
         </Box>
-        <TransportProvider>
+        <div
+          style={{
+            width: '100%',
+            justifyContent: 'center',
+            display: 'flex',
+          }}
+        >
           <div
-            style={{ width: '100%', justifyContent: 'center', display: 'flex' }}
+            style={{
+              width: '100vw',
+              height: '100vh',
+            }}
           >
-            <div
-              style={{
-                width: '100vw',
-                height: 'calc(100vh - 100px)',
-                backgroundColor: 'white',
+            <Canvas
+              onCreated={({ gl }) => {
+                gl.localClippingEnabled = true
+              }}
+              camera={{
+                position: [0, 0, 15],
+                fov: 55,
+                near: 0.1,
+                far: 400,
               }}
             >
-              <Canvas
-                onCreated={({ gl }) => {
-                  gl.localClippingEnabled = true
-                }}
-                camera={{
-                  position: [0, 0, 15],
-                  fov: 55,
-                  near: 0.1,
-                  far: 400,
-                }}
-              >
-                <ambientLight position={[-3, 0, -3]} intensity={0.9} />
-                <pointLight position={[-13, 10, 0]} intensity={0.9} />
-                <MidiControlProvider>
-                  <TransportGroup>
-                    <Background />
-                    <group position={touchLinePosition}>
-                      <PianoRoll noteEvents={noteEvents || []} />
-                      <VirtualPiano />
-                    </group>
-                    <RealPiano />
-                  </TransportGroup>
-                </MidiControlProvider>
-              </Canvas>
-            </div>
+              <ambientLight position={[-3, 0, -3]} intensity={0.9} />
+              <pointLight position={[-13, 10, 0]} intensity={0.9} />
+              <MidiControlProvider>
+                <TransportGroup>
+                  <Background />
+                  <group position={touchLinePosition}>
+                    <PianoRoll noteEvents={noteEvents || []} />
+                    <VirtualPiano />
+                  </group>
+                  <RealPiano />
+                </TransportGroup>
+              </MidiControlProvider>
+            </Canvas>
           </div>
-          <TransportPanel />
-        </TransportProvider>
+
+          <Box
+            position="absolute"
+            zIndex={9999}
+            top={'calc(50vh - 120px)'}
+            bottom={'25%'}
+          >
+            <SmallTransportPanel />
+          </Box>
+        </div>
       </Box>
     </Box>
   )
 }
 
-export default Playground
+export default Jukebox

@@ -86,7 +86,6 @@ const PianoRoll = (props: PianoRollProps & ThreeElements['mesh']) => {
       const block = renderInfo.current.blockRail[midiNumber][0]
       // score the touch
       const score = scoreUserTouch(block, renderInfo.current.timer)
-      console.log(score)
       // end of scoring
       if (block.noteEvent[0] <= renderInfo.current.timer) {
         renderInfo.current.blockRail[midiNumber].shift()
@@ -161,7 +160,7 @@ const PianoRoll = (props: PianoRollProps & ThreeElements['mesh']) => {
 
       return renderObject
     })
-  }, [props.noteEvents])
+  }, [props.noteEvents, railAngle])
 
   useEffect(() => {
     generateBlockRail()
@@ -170,7 +169,7 @@ const PianoRoll = (props: PianoRollProps & ThreeElements['mesh']) => {
 
   useEffect(() => {
     if (playingState === 'stopped') {
-      // generateBlockRail()
+      generateBlockRail()
       renderInfo.current.timer = 0
     }
   }, [generateBlockRail, playingState])

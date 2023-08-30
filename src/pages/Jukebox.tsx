@@ -51,14 +51,21 @@ const SmallTransportPanel = () => {
     }
   }, [handleKeyDown])
 
+  const style = {
+    fontSize: 120,
+    stroke: '#55555555',
+    strokeWidth: 0.1,
+    color: 'white',
+  }
+
   return (
     <Box sx={{ backgroundColor: 'transparent', display: 'flex' }}>
       <Box flexGrow={1}>
         <Button onClick={handlePlayButton} sx={{ width: 200, height: 200 }}>
           {playingState === 'playing' ? (
-            <PauseIcon sx={{ color: '#ffffff33', fontSize: 120 }} />
+            <PauseIcon sx={{ ...style, color: '#ffffff33' }} />
           ) : (
-            <PlayArrowIcon sx={{ color: 'white', fontSize: 120 }} />
+            <PlayArrowIcon sx={style} />
           )}
         </Button>
       </Box>

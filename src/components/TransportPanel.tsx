@@ -7,7 +7,7 @@ import {
   RadioGroup,
 } from '@mui/material'
 import { PlayingMode, useTransport } from '@providers/TransportProvider'
-import { useCallback, useEffect } from 'react'
+import { useCallback } from 'react'
 
 interface TransportPanelProps {
   onAngleChange?: (angle: number) => void

@@ -12,7 +12,7 @@ import { GameScoreProvider } from '@providers/GameScoreProvider'
 import Jukebox from '@pages/Jukebox'
 import { TransportProvider } from '@providers/TransportProvider'
 
-const baseURL = import.meta.env.VITE_API_URL
+// const baseURL = import.meta.env.VITE_API_URL
 
 // axios.defaults.baseURL = baseURL
 axios.defaults.headers.common['Authorization'] =

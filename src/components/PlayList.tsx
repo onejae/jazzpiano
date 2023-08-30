@@ -19,15 +19,21 @@ export interface PlayItem {
 
 interface PlayListProps {
   playItems: PlayItem[]
+  onSelect: SelectEventHandler
 }
 
-export const PlayList = ({ playItems = [] }: PlayListProps) => {
+type SelectEventHandler = (item: PlayItem) => void
+
+export const PlayList = ({ playItems = [], onSelect }: PlayListProps) => {
   return (
     <Box sx={{ background: 'transparent' }}>
       <List sx={{ width: '100%', maxWidth: 360, bgcolor: 'transparent' }}>
         {playItems.map((item) => (
           <>
-            <ListItemButton alignItems="flex-start">
+            <ListItemButton
+              alignItems="flex-start"
+              onClick={() => onSelect(item)}
+            >
               <ListItemAvatar>
                 <Avatar alt="Remy Sharp" src={item.avatarPath} />
               </ListItemAvatar>

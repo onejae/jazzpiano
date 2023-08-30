@@ -1,14 +1,13 @@
 import * as THREE from 'three'
 import { NoteEvent } from 'types/midi'
 
-import { useFrame } from '@react-three/fiber'
+import { ThreeElements, useFrame } from '@react-three/fiber'
 
-import { Suspense, useCallback, useEffect, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 
-import { KeyRenderSpace, VirtualPiano } from '@components/VirtualPiano'
+import { KeyRenderSpace } from '@components/VirtualPiano'
 import { useMidiControl } from '../providers/MidiControl'
 import { useTransport } from '@providers/TransportProvider'
-import { keyModels } from '@libs/midiControl'
 
 interface PianoRollProps {
   noteEvents: NoteEvent[]
@@ -40,7 +39,7 @@ const ScoreCriterionTable: ScoreCriterion = {
   0.9: { score: 0.1, name: 'poor' },
 }
 
-const PianoRoll = (props: PianoRollProps) => {
+const PianoRoll = (props: PianoRollProps & ThreeElements['mesh']) => {
   const ref = useRef<THREE.Group>(null!)
   const refNoteBlocks = useRef({})
   const refRailMaterials = useRef({})
@@ -50,7 +49,7 @@ const PianoRoll = (props: PianoRollProps) => {
     refHandlePreviewNoteDown,
     refHandlePreviewNoteUp,
   } = useMidiControl()
-  const { playingState, playingMode } = useTransport()
+  const { playingState, playingMode, railAngle } = useTransport()
 
   const renderInfo = useRef<RenderInfo>({
     timer: 0,
@@ -123,6 +122,13 @@ const PianoRoll = (props: PianoRollProps) => {
       const pitch = note[2]
       const duration = note[1] - note[0]
       const renderSpace = KeyRenderSpace[pitch]
+      const clippingPlane = new THREE.Plane(
+        new THREE.Vector3(0, 1, 0).applyAxisAngle(
+          new THREE.Vector3(1, 0, 0),
+          railAngle
+        ),
+        4.2
+      )
 
       const renderObject = (
         <mesh
@@ -145,16 +151,17 @@ const PianoRoll = (props: PianoRollProps) => {
             ref={(ref) => (refNoteBlocks.current[idx] = ref)}
             color={renderSpace.color}
             clippingPlanes={[
-              new THREE.Plane(new THREE.Vector3(0, 1, -1), 1.73),
+              // new THREE.Plane(new THREE.Vector3(0, 1, 0), 1.73),
+              clippingPlane,
             ]}
-            side={THREE.FrontSide}
+            side={THREE.DoubleSide}
           />
         </mesh>
       )
 
       return renderObject
     })
-  }, [props.noteEvents, refNoteBlocks])
+  }, [props.noteEvents])
 
   useEffect(() => {
     generateBlockRail()
@@ -167,53 +174,6 @@ const PianoRoll = (props: PianoRollProps) => {
       renderInfo.current.timer = 0
     }
   }, [generateBlockRail, playingState])
-
-  const Background = () => {
-    const lanes = []
-
-    useFrame((_state, _delta) => {
-      // color the rail
-      renderInfo.current.pressedMidiKeys.forEach((v) => {
-        refRailMaterials.current[v].color.set(0xff0000)
-      })
-      // end of coloring
-    })
-
-    keyModels.forEach((v, idx) => {
-      const renderSpace = KeyRenderSpace[v.midiNumber]
-
-      const geometry = new THREE.BoxGeometry(renderSpace.w, 100, renderSpace.d)
-      const lineGeometry = new THREE.EdgesGeometry(geometry)
-
-      lanes.push(
-        <mesh
-          key={idx}
-          position={[renderSpace.x, 0, renderSpace.z - 0.01]}
-          frustumCulled
-        >
-          <boxGeometry args={[renderSpace.w, 100, renderSpace.d]} />
-          <lineSegments args={[lineGeometry]}>
-            <lineBasicMaterial
-              color={0x000000}
-              clippingPlanes={[
-                new THREE.Plane(new THREE.Vector3(0, 1, -1), 1.73),
-              ]}
-            />
-          </lineSegments>
-          <meshStandardMaterial
-            clippingPlanes={[
-              new THREE.Plane(new THREE.Vector3(0, 1, -1), 1.73),
-            ]}
-            // side={THREE.FrontSide}
-            color={0xff0000}
-            ref={(ref) => (refRailMaterials.current[v.midiNumber] = ref)}
-          />
-        </mesh>
-      )
-    })
-
-    return <group>{lanes}</group>
-  }
 
   const NoteRender = () => {
     const keyNames = Object.keys(renderInfo.current.blockRail)
@@ -290,10 +250,9 @@ const PianoRoll = (props: PianoRollProps) => {
   }
 
   return (
-    <Suspense>
-      {/* <Background /> */}
+    <group>
       <NoteRender />
-    </Suspense>
+    </group>
   )
 }
 

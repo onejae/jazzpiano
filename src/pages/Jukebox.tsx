@@ -21,7 +21,32 @@ import { MovingStars } from '@components/InfiniteBackround'
 import * as THREE from 'three'
 import { PlayList } from '@components/PlayList'
 
+import debussyImg from '@assets/img/debussy.jpeg'
+import billImg from '@assets/img/bill.jpeg'
+import beethoven from '@assets/img/beethoven.jpeg'
+
 const touchLinePosition = new THREE.Vector3(0, -3, 0)
+
+const playItems = [
+  {
+    title: 'Prelude',
+    artist: 'Debush',
+    avatarPath: debussyImg,
+    midiPath: '/',
+  },
+  {
+    title: 'All the things you are',
+    artist: 'Bill evans',
+    avatarPath: billImg,
+    midiPath: '/',
+  },
+  {
+    title: 'Sonata No. 14 C# minor (Moonlight) , Opus 27/2 (1801)',
+    artist: 'Beethoven',
+    avatarPath: beethoven,
+    midiPath: '/',
+  },
+]
 
 const Playground = () => {
   const [noteEvents, setNoteEvents] = useState<NoteEvent[] | null>(null)
@@ -62,6 +87,7 @@ const Playground = () => {
   const handleDropFile = useCallback((files: any[]) => {
     const reader = new FileReader()
     reader.onload = function (e) {
+      debugger
       const buf = e.target.result as ArrayBuffer
 
       const midi = new Midi(buf)
@@ -89,8 +115,12 @@ const Playground = () => {
             onYoutubeLink={handleYoutubeLink}
           />
         </Box>
-        <Box>
-          <PlayList />
+        <Box
+          position={'absolute'}
+          zIndex={9999}
+          sx={{ background: 'transparent' }}
+        >
+          <PlayList playItems={playItems} />
         </Box>
         <TransportProvider>
           <div
@@ -119,8 +149,10 @@ const Playground = () => {
                 <MidiControlProvider>
                   <TransportGroup>
                     <Background />
-                    <PianoRoll noteEvents={noteEvents || []} />
-                    <VirtualPiano position={touchLinePosition} />
+                    <group position={touchLinePosition}>
+                      <PianoRoll noteEvents={noteEvents || []} />
+                      <VirtualPiano />
+                    </group>
                     <RealPiano />
                   </TransportGroup>
                 </MidiControlProvider>

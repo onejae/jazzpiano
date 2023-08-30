@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Stars, Sky } from '@react-three/drei'
 import { generateUniqueId } from '@libs/number'
@@ -43,6 +43,10 @@ export const MovingStars = () => {
     })
   }, [])
 
+  useEffect(() => {
+    addStar()
+  }, [addStar])
+
   const removeStar = useCallback((uuid: number) => {
     setStars((prevStars) => {
       const filtered = prevStars.filter((star) => {
@@ -73,7 +77,7 @@ export const MovingStars = () => {
         speed={1}
       />
 
-      {/* {stars.map((star, index) => (
+      {stars.map((star, index) => (
         <Star
           key={index}
           position={star.position}
@@ -81,7 +85,7 @@ export const MovingStars = () => {
           removeStar={removeStar}
           uuid={star.uuid}
         />
-      ))} */}
+      ))}
     </group>
   )
 }

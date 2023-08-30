@@ -155,10 +155,7 @@ export const GameControlProvider = (props: PropsWithChildren) => {
     return () => clearInterval(intervalTimer)
   }, [])
 
-  const satisfied = (
-    candidate: CandidateInfo,
-    blockInfo: BlockInfo
-  ): boolean => {
+  const satisfied = (candidate: CandidateInfo): boolean => {
     return (
       candidate.score >= ScaleIndexTable[candidate.scale].length &&
       candidate.matchCountInScale >= 8
@@ -223,7 +220,7 @@ export const GameControlProvider = (props: PropsWithChildren) => {
           }
           candidateScales.current.push(candidateScale)
 
-          if (satisfied(candidateScale, block)) {
+          if (satisfied(candidateScale)) {
             hits.push(candidateScale)
           }
         }

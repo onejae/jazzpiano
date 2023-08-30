@@ -14,38 +14,42 @@ export interface PlayItem {
   title: string
   artist: string
   avatarPath: string
+  midiPath: string
 }
 
 interface PlayListProps {
   playItems: PlayItem[]
 }
 
-export const PlayList = ({ playItems }: PlayListProps) => {
+export const PlayList = ({ playItems = [] }: PlayListProps) => {
   return (
-    <Box>
-      <List sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
-        <ListItemButton alignItems="flex-start">
-          <ListItemAvatar>
-            <Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
-          </ListItemAvatar>
-          <ListItemText
-            primary="Brunch this weekend?"
-            secondary={
-              <React.Fragment>
-                <Typography
-                  sx={{ display: 'inline' }}
-                  component="span"
-                  variant="body2"
-                  color="text.primary"
-                >
-                  Ali Connors
-                </Typography>
-                {" — I'll be in your neighborhood doing errands this…"}
-              </React.Fragment>
-            }
-          />
-        </ListItemButton>
-        <Divider variant="inset" component="li" />
+    <Box sx={{ background: 'transparent' }}>
+      <List sx={{ width: '100%', maxWidth: 360, bgcolor: 'transparent' }}>
+        {playItems.map((item) => (
+          <>
+            <ListItemButton alignItems="flex-start">
+              <ListItemAvatar>
+                <Avatar alt="Remy Sharp" src={item.avatarPath} />
+              </ListItemAvatar>
+              <ListItemText
+                primary={<Typography color="white">{item.title}</Typography>}
+                secondary={
+                  <React.Fragment>
+                    <Typography
+                      sx={{ display: 'inline' }}
+                      component="span"
+                      variant="body2"
+                      color="grey"
+                    >
+                      {item.artist}
+                    </Typography>
+                  </React.Fragment>
+                }
+              />
+            </ListItemButton>
+            <Divider variant="inset" component="li" />
+          </>
+        ))}
       </List>
     </Box>
   )

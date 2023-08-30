@@ -20,8 +20,8 @@ export const RealPiano = () => {
         }
       },
     }).then(() => {
-      WebMidi.addListener('connected', function (e) {
-        WebMidi.inputs.forEach((input, idx) => {
+      WebMidi.addListener('connected', function () {
+        WebMidi.inputs.forEach((input) => {
           input.removeListener('noteon')
           input.addListener(
             'noteon',

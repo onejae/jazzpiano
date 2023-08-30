@@ -6,6 +6,7 @@ import { VirtualPiano } from '@components/VirtualPiano'
 import { Text as RText } from '@react-three/drei'
 import { Canvas, ThreeElements, extend, useFrame } from '@react-three/fiber'
 import { useCallback, useEffect, useRef, useState } from 'react'
+// @ts-ignore
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry'
 extend({ TextGeometry })
 
@@ -62,24 +63,12 @@ loader.load(
 
   // onError callback
   function (err) {
-    console.log('An error happened')
+    console.log('An error happened', err)
   }
 )
 
 const GameButtons = () => {
   const { playState, setPlayState, setShowLeaderBoard } = useGame()
-
-  const { railAngle, setRailAngle } = useTransport()
-
-  const handleAngleIncrease = useCallback(() => {
-    const newAngle = railAngle + 0.1
-    setRailAngle(newAngle)
-  }, [railAngle, setRailAngle])
-
-  const handleAngleDecrease = useCallback(() => {
-    const newAngle = railAngle - 0.1
-    setRailAngle(newAngle)
-  }, [railAngle, setRailAngle])
 
   const handlePlayButton = useCallback(() => {
     gameState.score = 0
@@ -404,7 +393,7 @@ const GamePlayBoard = () => {
     getRanks().then((ranks) => {
       gameState.score = 0
 
-      ranks.forEach((e, idx) => {
+      ranks.forEach((e) => {
         if (e.score >= gameState.score) {
           showInput = true
         }

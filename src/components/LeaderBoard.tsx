@@ -4,7 +4,7 @@ import { Box, Button, Tabs, Tab, Typography } from '@mui/material'
 const LeaderBoard = ({ open, ranks, onClose }) => {
   const [currentTab, setCurrentTab] = useState(0)
 
-  const handleTabChange = (event, newValue) => {
+  const handleTabChange = (_event, newValue) => {
     setCurrentTab(newValue)
   }
   if (!open) return <></>

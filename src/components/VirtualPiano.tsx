@@ -40,7 +40,6 @@ pianoPlayer.loaded().then(() => {
   console.log('--- virtual piano player is ready')
 })
 
-// const START_X = -11.5
 let TOTAL_WIDTH = 0
 const WHITEKEY_WIDTH = 0.5
 const WHITEKEY_HEIGHT = 1.3
@@ -86,6 +85,10 @@ for (let lastX = 0, i = 0; i < keyModels.length; i++) {
 
   if (i < keyModels.length - 1) TOTAL_WIDTH = lastX
 }
+
+Object.keys(KeyRenderSpace).forEach((key) => {
+  KeyRenderSpace[key].x -= TOTAL_WIDTH * 0.5
+})
 
 export const VirtualPiano = (props: ThreeElements['mesh']) => {
   const refPianoKeys = useRef([])
@@ -184,17 +187,15 @@ export const VirtualPiano = (props: ThreeElements['mesh']) => {
     }
   }, [handleKeyDown, handleKeyUp])
 
+  const refPiano = useRef()
+
   return (
-    <group position={props.position} scale={0.9}>
+    <group ref={refPiano} position={props.position}>
       {keyModels.map((key: KeyModel, idx) => {
         const renderSpace = KeyRenderSpace[key.midiNumber]
         return (
           <mesh
-            position={[
-              renderSpace.x - TOTAL_WIDTH * 0.5,
-              renderSpace.y,
-              renderSpace.z,
-            ]}
+            position={[renderSpace.x, renderSpace.y, renderSpace.z]}
             key={idx}
           >
             <boxGeometry args={[renderSpace.w, renderSpace.h, renderSpace.d]} />
@@ -211,7 +212,7 @@ export const VirtualPiano = (props: ThreeElements['mesh']) => {
               anchorX="center"
               anchorY="middle"
             >
-              {key.keyName}
+              {/* {key.keyName} */}
             </Text>
           </mesh>
         )

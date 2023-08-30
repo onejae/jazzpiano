@@ -23,6 +23,7 @@ import { PlayItem, PlayList } from '@components/PlayList'
 import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import PauseIcon from '@mui/icons-material/Pause'
 import axios from 'axios'
+import LoadingScreen from '@components/LoadingScreen'
 
 const touchLinePosition = new THREE.Vector3(0, -3, 0)
 
@@ -157,22 +158,6 @@ const Jukebox = () => {
           setPlayingState('stopped')
         })
 
-      // const request = new XMLHttpRequest()
-      // request.open('GET', item.midiPath, true)
-      // request.responseType = 'blob'
-
-      // request.onload = function () {
-      //   request.response.arrayBuffer().then((buf) => {
-      //     const midi = new Midi(buf)
-
-      //     const noteEvents = getNoteEventsFromTonejs(midi)
-
-      //     setNoteEvents(noteEvents)
-      //     setPlayingState('stopped')
-      //   })
-      // }
-      // request.send()
-
       setPlayingItem(item)
     },
     [playingItem, setPlayingState]
@@ -256,6 +241,7 @@ const Jukebox = () => {
           </Box>
         </div>
       </Box>
+      <LoadingScreen />
     </Box>
   )
 }

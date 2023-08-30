@@ -30,7 +30,7 @@ const LoadingScreen = () => {
   useEffect(() => {
     const requestInterceptor = axios.interceptors.request.use((config) => {
       setSpinningType(
-        ['post', 'put'].includes(config.method || 'get')
+        ['post', 'put', 'get'].includes(config.method || 'get')
           ? SpinningType.LOCK
           : SpinningType.NOLOCK
       )
@@ -70,11 +70,12 @@ const LoadingScreen = () => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              zIndex: 10000,
             }}
           >
             <Box display="flex" flexDirection="column" alignItems="center">
               <CircularProgress />
-              <Typography>Loading...</Typography>
+              <Typography color="white">Loading...</Typography>
             </Box>
           </Box>
         )}

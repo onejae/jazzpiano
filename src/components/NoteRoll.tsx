@@ -85,7 +85,8 @@ const PianoRoll = (props: PianoRollProps & ThreeElements['mesh']) => {
         return
       const block = renderInfo.current.blockRail[midiNumber][0]
       // score the touch
-      // const score = scoreUserTouch(block, renderInfo.current.timer)
+      const score = scoreUserTouch(block, renderInfo.current.timer)
+      console.log(score)
       // end of scoring
       if (block.noteEvent[0] <= renderInfo.current.timer) {
         renderInfo.current.blockRail[midiNumber].shift()

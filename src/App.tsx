@@ -66,7 +66,7 @@ const router = createBrowserRouter([
     ],
   },
   {
-    path: '/jukebox',
+    path: '/demo/jukebox',
     element: (
       <TransportProvider>
         <Jukebox />

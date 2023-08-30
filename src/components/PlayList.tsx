@@ -57,7 +57,10 @@ export const PlayList = ({ playItems = [], onSelect }: PlayListProps) => {
                 }}
               >
                 <ListItemAvatar>
-                  <Avatar alt="Remy Sharp" src={item.avatarPath} />
+                  <Avatar
+                    alt="Remy Sharp"
+                    src={'/demo/jukebox' + item.avatarPath}
+                  />
                 </ListItemAvatar>
                 <ListItemText
                   primary={<Typography color="white">{item.title}</Typography>}

@@ -146,7 +146,7 @@ const Jukebox = () => {
       }
 
       axios
-        .get(item.midiPath, {
+        .get('/demo/jukebox' + item.midiPath, {
           responseType: 'arraybuffer', // Set the responseType to 'arraybuffer'
         })
         .then((e) => {

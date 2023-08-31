@@ -49,6 +49,7 @@ export const PlayList = ({ playItems = [], onSelect }: PlayListProps) => {
           {playItems.map((item, idx) => (
             <>
               <ListItemButton
+                key={idx}
                 alignItems="flex-start"
                 selected={idx === selectedIdx}
                 onClick={() => {

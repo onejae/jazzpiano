@@ -22,6 +22,8 @@
     "@types/three": "^0.152.1",
     "axios": "^1.4.0",
     "fs": "^0.0.1-security",
+    "midi-player-js": "^2.0.16",
+    "midicube": "^0.6.2",
     "react": "^18.2.0",
     "react-device-detect": "^2.2.3",
     "react-dom": "^18.2.0",

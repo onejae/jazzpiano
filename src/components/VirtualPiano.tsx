@@ -180,12 +180,12 @@ export const VirtualPiano = (props: ThreeElements['mesh']) => {
   )
 
   useEffect(() => {
-    setHandlePreviewNoteDown((m) => {
+    setHandlePreviewNoteDown((m, v) => {
       refPianoKeys.current[m - START_MIDI_KEY].color.set('blue')
 
       pianoPlayer.start({
         note: m,
-        velocity: 80,
+        velocity: v,
       })
     })
 

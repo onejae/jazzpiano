@@ -47,7 +47,7 @@ export const PlayList = ({ playItems = [], onSelect }: PlayListProps) => {
       <Box sx={{ background: 'transparent' }}>
         <List sx={{ width: '100%', maxWidth: 360, bgcolor: 'transparent' }}>
           {playItems.map((item, idx) => (
-            <>
+            <div key={idx}>
               <ListItemButton
                 key={idx}
                 alignItems="flex-start"
@@ -80,7 +80,7 @@ export const PlayList = ({ playItems = [], onSelect }: PlayListProps) => {
                 />
               </ListItemButton>
               <Divider variant="inset" component="li" />
-            </>
+            </div>
           ))}
         </List>
       </Box>

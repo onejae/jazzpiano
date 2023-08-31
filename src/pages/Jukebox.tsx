@@ -27,6 +27,38 @@ import LoadingScreen from '@components/LoadingScreen'
 
 const touchLinePosition = new THREE.Vector3(0, -3, 0)
 
+import * as MIDI from 'midicube'
+
+window.MIDI = MIDI // Register to global first
+
+// MIDI.loadPlugin({
+//   // this only has piano.
+//   // for other sounds install the MIDI.js
+//   // soundfonts somewhere.
+//   soundfontUrl: '/soundfont/',
+//   onerror: console.warn,
+//   onsuccess: () => {
+//     // MIDI.noteOn(0, 60, 1)
+//     // MIDI.noteOn(1, 60, 80)
+//     // MIDI.noteOn(2, 60, 80)
+//     // MIDI.noteOn(3, 60, 80)
+//   },
+// })
+
+// MIDI.loadPlugin({
+//   soundfontUrl: '/demo/jukebox/soundfont/FluidR3_GM/',
+//   // soundfontUrl: 'http://gleitz.github.io/midi-js-soundfonts/',
+//   // instrument: 'acoustic_grand_piano', // or the instrument code 1 (aka the default)
+//   instruments: ['acoustic_grand_piano', 'drums'], // or multiple instruments
+//   onsuccess: function () {
+//     debugger
+//     MIDI.programChange(0, MIDI.GM.byName['steel_drums'].program)
+//     // MIDI.programChange(8, MIDI.GM.byName['acoustic_grand_piano'].program)
+//   },
+// })
+
+const Player = new MIDI.Player()
+
 const SmallTransportPanel = () => {
   const { playingState, setPlayingState } = useTransport()
   const handlePlayButton = useCallback(() => {
@@ -152,11 +184,48 @@ const Jukebox = () => {
         return
       }
 
+      // Player.loadFile(
+      //   'http://localhost:5173/demo/jukebox' + item.midiPath,
+      //   () => {
+      //     debugger
+      //     Player.start()
+      //   }
+      // )
+
       axios
         .get('/demo/jukebox' + item.midiPath, {
           responseType: 'arraybuffer', // Set the responseType to 'arraybuffer'
         })
         .then((e) => {
+          Player.currentTime = 0
+          Player.playing = true
+          Player.endTime = 100
+
+          Player.addListener(function (data) {
+            // set it to your own function!
+            const now = data.now // where we are now
+            const end = data.end // time when song ends
+            const channel = data.channel // channel note is playing on
+            const message = data.message // 128 is noteOff, 144 is noteOn
+            const note = data.note // the note
+            const velocity = data.velocity // the velocity of the note
+            // then do whatever you want with the information!
+          })
+
+          const uint8Array = new Uint8Array(e.data)
+
+          // Convert the Uint8Array to a string
+          let binaryString = ''
+          for (let i = 0; i < uint8Array.length; i++) {
+            binaryString += String.fromCharCode(uint8Array[i])
+          }
+
+          // Encode the binary string to Base64 using btoa
+          const base64String = 'data:audio/midi;base64,' + btoa(binaryString)
+
+          // Player.loadFile(base64String, () => {})
+          // Player.start()
+
           const midi = new Midi(e.data)
 
           const noteEvents = getNoteEventsFromTonejs(midi)

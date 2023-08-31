@@ -132,6 +132,7 @@ const PianoRoll = (props: PianoRollProps & ThreeElements['mesh']) => {
 
       const renderObject = (
         <mesh
+          key={idx}
           position={[
             renderSpace.x,
             startTime * Y_LENGTH_PER_SECOND +

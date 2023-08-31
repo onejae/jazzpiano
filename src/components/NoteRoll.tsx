@@ -60,7 +60,7 @@ const PianoRoll = (props: PianoRollProps & ThreeElements['mesh']) => {
   })
 
   const scoreUserTouch = (block: Block, timing: number) => {
-    const timingGap = Math.abs(block.noteEvent[0] - timing)
+    const timingGap = Math.abs(block.noteEvent.start_s - timing)
     const belongingTiming = Object.keys(ScoreCriterionTable).find(
       (v) => Number(v) >= timingGap
     )
@@ -88,7 +88,7 @@ const PianoRoll = (props: PianoRollProps & ThreeElements['mesh']) => {
       const score = scoreUserTouch(block, renderInfo.current.timer)
       console.log(score)
       // end of scoring
-      if (block.noteEvent[0] <= renderInfo.current.timer) {
+      if (block.noteEvent.start_s <= renderInfo.current.timer) {
         renderInfo.current.blockRail[midiNumber].shift()
       }
     })
@@ -103,8 +103,8 @@ const PianoRoll = (props: PianoRollProps & ThreeElements['mesh']) => {
     renderInfo.current.blockRail = {}
 
     props.noteEvents.forEach((note: NoteEvent, idx) => {
-      const pitch = note[2]
-      note[4] = false
+      const pitch = note.pitch
+      note.played = false
       if (renderInfo.current) {
         renderInfo.current.blockRail[pitch] =
           renderInfo.current.blockRail[pitch] || []
@@ -118,9 +118,9 @@ const PianoRoll = (props: PianoRollProps & ThreeElements['mesh']) => {
 
   const noteBlocks = useMemo(() => {
     return props.noteEvents.map((note: NoteEvent, idx) => {
-      const startTime = note[0]
-      const pitch = note[2]
-      const duration = note[1] - note[0]
+      const startTime = note.start_s
+      const pitch = note.pitch
+      const duration = note.end_s - note.start_s
       const renderSpace = KeyRenderSpace[pitch]
       const clippingPlane = new THREE.Plane(
         new THREE.Vector3(0, 1, 0).applyAxisAngle(
@@ -151,10 +151,7 @@ const PianoRoll = (props: PianoRollProps & ThreeElements['mesh']) => {
           <meshStandardMaterial
             ref={(ref) => (refNoteBlocks.current[idx] = ref)}
             color={renderSpace.color}
-            clippingPlanes={[
-              // new THREE.Plane(new THREE.Vector3(0, 1, 0), 1.73),
-              clippingPlane,
-            ]}
+            clippingPlanes={[clippingPlane]}
             side={THREE.DoubleSide}
           />
         </mesh>
@@ -184,24 +181,24 @@ const PianoRoll = (props: PianoRollProps & ThreeElements['mesh']) => {
 
         const block = renderInfo.current.blockRail[keyName][0]
 
-        if (block.noteEvent[0] <= renderInfo.current.timer) {
+        if (block.noteEvent.start_s <= renderInfo.current.timer) {
           refNoteBlocks.current[block.idx].color.set(0xff0000)
 
-          if (!block.noteEvent[4]) {
+          if (!block.noteEvent.played) {
             if (refHandlePreviewNoteDown.current && playingMode === 'preview')
               refHandlePreviewNoteDown.current(
-                block.noteEvent[2],
-                block.noteEvent[3]
+                block.noteEvent.pitch,
+                block.noteEvent.velocity
               )
-            block.noteEvent[4] = true
+            block.noteEvent.played = true
           }
         }
 
-        if (block.noteEvent[1] <= renderInfo.current.timer) {
+        if (block.noteEvent.end_s <= renderInfo.current.timer) {
           if (refHandlePreviewNoteUp.current && playingMode === 'preview')
             refHandlePreviewNoteUp.current(
-              block.noteEvent[2],
-              block.noteEvent[3]
+              block.noteEvent.pitch,
+              block.noteEvent.velocity
             )
           renderInfo.current.blockRail[keyName].shift()
         }
@@ -214,7 +211,7 @@ const PianoRoll = (props: PianoRollProps & ThreeElements['mesh']) => {
         if (renderInfo.current.blockRail[keyName].length === 0) return
 
         const block = renderInfo.current.blockRail[keyName][0]
-        if (block.noteEvent[0] <= renderInfo.current.timer) {
+        if (block.noteEvent.start_s <= renderInfo.current.timer) {
           notesToWait.push(block.noteEvent)
         }
       })

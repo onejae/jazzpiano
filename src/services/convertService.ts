@@ -36,20 +36,21 @@ export const getNoteEventsFromTonejs = (midi: Midi): NoteEvent[] => {
           note.midi >= START_MIDI_KEY &&
           note.midi <= START_MIDI_KEY + KEY_NUM - 1
         )
-          noteEvents.push([
-            note.time,
-            note.time + note.duration,
-            note.midi,
-            note.velocity * 127,
-            false,
-          ])
+          noteEvents.push({
+            family: t.instrument.family,
+            start_s: note.time,
+            end_s: note.time + note.duration,
+            pitch: note.midi,
+            velocity: note.velocity * 127,
+            played: false,
+          })
       })
     }
   })
 
   const noteEventsSorted = noteEvents.sort((a, b) => {
-    if (a[0] > b[0]) return 1
-    else if (a[0] === b[0]) return 0
+    if (a.start_s > b.start_s) return 1
+    else if (a.start_s === b.start_s) return 0
     else return -1
   })
 

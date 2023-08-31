@@ -85,6 +85,7 @@ const PianoRoll = (props: PianoRollProps & ThreeElements['mesh']) => {
   const { playingState, playingMode, railAngle } = useTransport()
 
   const refSessionTracker = useRef<TimeTracker>(null)
+  console.log(refSessionTracker)
 
   const renderInfo = useRef<RenderInfo>({
     timer: 0,

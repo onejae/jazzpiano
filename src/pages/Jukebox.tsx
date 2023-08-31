@@ -27,8 +27,6 @@ import LoadingScreen from '@components/LoadingScreen'
 
 const touchLinePosition = new THREE.Vector3(0, -3, 0)
 
-import * as MIDI from 'midicube'
-
 const SmallTransportPanel = () => {
   const { playingState, setPlayingState } = useTransport()
   const handlePlayButton = useCallback(() => {

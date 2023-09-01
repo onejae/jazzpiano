@@ -4,10 +4,7 @@ import { RealPiano } from '@components/RealPiano'
 import { Box, Button } from '@mui/material'
 import { MidiControlProvider } from '@providers/MidiControl'
 import { useTransport } from '@providers/TransportProvider'
-import {
-  getMidiFromYoutubeLink,
-  getNoteEventsFromTonejs,
-} from '@services/convertService'
+import { getNoteEventsFromTonejs } from '@services/convertService'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { NoteEvent } from 'types/midi'
 
@@ -24,6 +21,9 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import PauseIcon from '@mui/icons-material/Pause'
 import axios from 'axios'
 import LoadingScreen from '@components/LoadingScreen'
+
+import sessionPlayer, { TimeTracker } from '@libs/sessions'
+import { g_RenderState } from 'global'
 
 const touchLinePosition = new THREE.Vector3(0, -3, 0)
 
@@ -96,8 +96,11 @@ const playItems = [
 
 const Jukebox = () => {
   const [noteEvents, setNoteEvents] = useState<NoteEvent[] | null>(null)
-  const { setPlayingState } = useTransport()
+  const { playingState, setPlayingState } = useTransport()
   const [playingItem, setPlayingItem] = useState(null)
+
+  const refSessionTracker = useRef<TimeTracker>(null)
+  const requestRef = useRef<number>(0)
 
   const Background = () => {
     const timeRef = useRef(0)
@@ -112,39 +115,23 @@ const Jukebox = () => {
     )
   }
 
-  const handleYoutubeLink = useCallback(async (youtubeLink: string) => {
-    try {
-      const response = await getMidiFromYoutubeLink({ link: youtubeLink })
+  const handleDropFile = useCallback(
+    (files: any[]) => {
+      const reader = new FileReader()
+      reader.onload = function (e) {
+        const buf = e.target.result as ArrayBuffer
 
-      if (response.note_events) {
-        const noteEventsSorted = response.note_events.sort((a, b) => {
-          if (a[0] > b[0]) return 1
-          else if (a[0] === b[0]) return 0
-          else return -1
-        })
+        const midi = new Midi(buf)
 
-        const noteEventFiltered = noteEventsSorted.filter((v) => v[2] >= 40)
+        const noteEvents = getNoteEventsFromTonejs(midi)
 
-        setNoteEvents(noteEventFiltered)
+        setNoteEvents(noteEvents)
+        setPlayingState('stopped')
       }
-    } catch (error) {
-      alert(error)
-    }
-  }, [])
-
-  const handleDropFile = useCallback((files: any[]) => {
-    const reader = new FileReader()
-    reader.onload = function (e) {
-      const buf = e.target.result as ArrayBuffer
-
-      const midi = new Midi(buf)
-
-      const noteEvents = getNoteEventsFromTonejs(midi)
-
-      setNoteEvents(noteEvents)
-    }
-    if (files.length > 0) reader.readAsArrayBuffer(files[0])
-  }, [])
+      if (files.length > 0) reader.readAsArrayBuffer(files[0])
+    },
+    [setPlayingState]
+  )
 
   const handleItemSelect = useCallback(
     (item: PlayItem) => {
@@ -170,10 +157,54 @@ const Jukebox = () => {
     [playingItem, setPlayingState]
   )
 
+  const processSession = useCallback(
+    (t: DOMHighResTimeStamp) => {
+      const current = t / 1000
+      if (g_RenderState.start === null) {
+        g_RenderState.start = current
+        g_RenderState.last = current
+      }
+
+      if (playingState === 'playing') {
+        g_RenderState.timer += current - g_RenderState.last
+        const sessionNotes = refSessionTracker.current.getNotesByTime(
+          g_RenderState.timer
+        )
+        sessionNotes.forEach((note: NoteEvent) => {
+          sessionPlayer.noteOn(note.family, note.pitch, note.velocity, 0)
+          sessionPlayer.noteOff(
+            note.family,
+            note.pitch,
+            note.end_s - note.start_s
+          )
+        })
+      }
+
+      g_RenderState.last = current
+      requestRef.current = requestAnimationFrame(processSession)
+    },
+    [playingState]
+  )
+
+  useEffect(() => {
+    if (playingState === 'playing' || playingState === 'paused') {
+      requestRef.current = requestAnimationFrame(processSession)
+    } else {
+      if (playingState === 'stopped') {
+        g_RenderState.start = null
+        g_RenderState.timer = 0
+        cancelAnimationFrame(requestRef.current)
+      }
+    }
+
+    return () => cancelAnimationFrame(requestRef.current)
+  }, [playingState, processSession])
+
   useEffect(() => {
     if (!noteEvents) {
       handleItemSelect(playItems[0])
     }
+    refSessionTracker.current = new TimeTracker(noteEvents)
   }, [handleItemSelect, noteEvents])
 
   return (
@@ -187,10 +218,7 @@ const Jukebox = () => {
           top={['calc(100% - 120px)', 0]}
           zIndex={9999}
         >
-          <AudioDropzone
-            onDrop={handleDropFile}
-            onYoutubeLink={handleYoutubeLink}
-          />
+          <AudioDropzone onDrop={handleDropFile} />
         </Box>
         <Box
           position={'absolute'}

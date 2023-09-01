@@ -9,7 +9,8 @@ import { KeyRenderSpace } from '@components/VirtualPiano'
 import { useMidiControl } from '../providers/MidiControl'
 import { useTransport } from '@providers/TransportProvider'
 
-import sessionPlayer from '@libs/sessions'
+import sessionPlayer, { TimeTracker } from '@libs/sessions'
+import { g_RenderState } from 'global'
 
 interface PianoRollProps {
   noteEvents: NoteEvent[]
@@ -41,37 +42,6 @@ const ScoreCriterionTable: ScoreCriterion = {
   0.9: { score: 0.1, name: 'poor' },
 }
 
-class TimeTracker {
-  notes: NoteEvent[]
-  cursor: number
-
-  constructor(notes: NoteEvent[]) {
-    this.cursor = 0
-    this.notes = notes
-  }
-
-  getNotesByTime(time: number): NoteEvent[] {
-    const notes = []
-
-    while (this.cursor < this.notes.length) {
-      const candidate = this.notes[this.cursor]
-
-      if (candidate.start_s <= time) {
-        notes.push(candidate)
-        this.cursor += 1
-      } else {
-        break
-      }
-    }
-
-    return notes
-  }
-
-  init() {
-    this.cursor = 0
-  }
-}
-
 const PianoRoll = (props: PianoRollProps & ThreeElements['mesh']) => {
   const ref = useRef<THREE.Group>(null!)
   const refNoteBlocks = useRef({})
@@ -84,8 +54,7 @@ const PianoRoll = (props: PianoRollProps & ThreeElements['mesh']) => {
   } = useMidiControl()
   const { playingState, playingMode, railAngle } = useTransport()
 
-  const refSessionTracker = useRef<TimeTracker>(null)
-  console.log(refSessionTracker)
+  const refPianoTracker = useRef<TimeTracker>(null)
 
   const renderInfo = useRef<RenderInfo>({
     timer: 0,
@@ -121,10 +90,12 @@ const PianoRoll = (props: PianoRollProps & ThreeElements['mesh']) => {
         return
       const block = renderInfo.current.blockRail[midiNumber][0]
       // score the touch
-      const score = scoreUserTouch(block, renderInfo.current.timer)
+      // const score = scoreUserTouch(block, renderInfo.current.timer)
+      const score = scoreUserTouch(block, g_RenderState.timer)
       console.log(score)
       // end of scoring
-      if (block.noteEvent.start_s <= renderInfo.current.timer) {
+      // if (block.noteEvent.start_s <= renderInfo.current.timer) {
+      if (block.noteEvent.start_s <= g_RenderState.timer) {
         renderInfo.current.blockRail[midiNumber].shift()
       }
     })
@@ -138,12 +109,12 @@ const PianoRoll = (props: PianoRollProps & ThreeElements['mesh']) => {
   const generateBlockRail = useCallback(() => {
     renderInfo.current.blockRail = {}
 
-    // refSessionTracker.current = new TimeTracker(
-    // props.noteEvents.filter((v) => v.family != 'piano')
-    // )
+    refPianoTracker.current = new TimeTracker(
+      props.noteEvents.filter((v) => v.family === 'piano')
+    )
 
     props.noteEvents
-      // .filter((v) => v.family === 'piano')
+      .filter((v) => v.family === 'piano')
       .forEach((note: NoteEvent, idx) => {
         const pitch = note.pitch
         note.played = false
@@ -210,35 +181,13 @@ const PianoRoll = (props: PianoRollProps & ThreeElements['mesh']) => {
     if (props.noteEvents.length) renderInfo.current.status = 'LOADED'
   }, [generateBlockRail, props.noteEvents])
 
-  const processSession = () => {
-    // const sessionNotes = refSessionTracker.current.getNotesByTime(
-    // renderInfo.current.timer
-    // )
-    // props.noteEvents
-    //   .filter((v) => v.family != 'piano')
-    //   .forEach((note) => {
-    //     sessionPlayer.noteOn(
-    //       note.family,
-    //       note.pitch,
-    //       note.velocity,
-    //       note.start_s
-    //     )
-    //   })
-    // sessionNotes.forEach((note) => {
-    // sessionPlayer.noteOn(note.family, note.pitch, note.velocity)
-    // })
-    // console.log(sessionNotes)
-  }
-
   useEffect(() => {
     if (playingState === 'stopped') {
       generateBlockRail()
 
       renderInfo.current.timer = 0
-    } else {
-      processSession()
     }
-  }, [generateBlockRail, playingState, processSession])
+  }, [generateBlockRail, playingState])
 
   const NoteRender = () => {
     const keyNames = Object.keys(renderInfo.current.blockRail)
@@ -248,20 +197,14 @@ const PianoRoll = (props: PianoRollProps & ThreeElements['mesh']) => {
 
         const block = renderInfo.current.blockRail[keyName][0]
 
-        if (block.noteEvent.start_s <= renderInfo.current.timer) {
+        // if (block.noteEvent.start_s <= renderInfo.current.timer) {
+        if (block.noteEvent.start_s <= g_RenderState.timer) {
           if (!block.noteEvent.played && refHandlePreviewNoteDown.current) {
             if (block.noteEvent.family === 'piano') {
-              // refNoteBlocks.current[block.idx].color.set(0xff0000)
+              refNoteBlocks.current[block.idx].color.set(0xff0000)
               refHandlePreviewNoteDown.current(
                 block.noteEvent.pitch,
                 block.noteEvent.velocity
-              )
-            } else {
-              sessionPlayer.noteOn(
-                block.noteEvent.family,
-                block.noteEvent.pitch,
-                block.noteEvent.velocity,
-                0
               )
             }
 
@@ -269,17 +212,13 @@ const PianoRoll = (props: PianoRollProps & ThreeElements['mesh']) => {
           }
         }
 
-        if (block.noteEvent.end_s <= renderInfo.current.timer) {
+        // if (block.noteEvent.end_s <= renderInfo.current.timer) {
+        if (block.noteEvent.end_s <= g_RenderState.timer) {
           if (refHandlePreviewNoteUp.current && playingMode === 'preview')
             if (block.noteEvent.family === 'piano') {
               refHandlePreviewNoteUp.current(
                 block.noteEvent.pitch,
                 block.noteEvent.velocity
-              )
-            } else {
-              sessionPlayer.noteOff(
-                block.noteEvent.family,
-                block.noteEvent.pitch
               )
             }
           renderInfo.current.blockRail[keyName].shift()
@@ -295,15 +234,18 @@ const PianoRoll = (props: PianoRollProps & ThreeElements['mesh']) => {
       if (playingState === 'paused') {
         processBlocks()
         ref.current.position.setY(
-          -Y_LENGTH_PER_SECOND * renderInfo.current.timer
+          // -Y_LENGTH_PER_SECOND * renderInfo.current.timer
+          -Y_LENGTH_PER_SECOND * g_RenderState.timer
         )
         return
       }
 
-      renderInfo.current.timer += delta
+      // renderInfo.current.timer += delta
 
       processBlocks()
-      ref.current.position.setY(-Y_LENGTH_PER_SECOND * renderInfo.current.timer)
+
+      // ref.current.position.setY(-Y_LENGTH_PER_SECOND * renderInfo.current.timer)
+      ref.current.position.setY(-Y_LENGTH_PER_SECOND * g_RenderState.timer)
     })
 
     return <group ref={ref}>{noteBlocks}</group>

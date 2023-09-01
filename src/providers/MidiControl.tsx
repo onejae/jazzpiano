@@ -8,7 +8,11 @@ import {
 } from 'react'
 import { PropsWithChildren } from 'react'
 
-type MidiNoteEventHandlerType = (midinumber: number, velocity: number) => any
+type MidiNoteEventHandlerType = (
+  midinumber: number,
+  velocity: number,
+  playSound?: boolean
+) => any
 interface MidiControlContextType {
   refHandleMidiNoteDown: MutableRefObject<MidiNoteEventHandlerType>
   setHandleMidiNoteDown: (handler: MidiNoteEventHandlerType) => void

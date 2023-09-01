@@ -13,8 +13,8 @@ export const useAudioDropzone = () => {
 const enableYoutube = false
 
 export const AudioDropzone = (audioProps: {
-  onYoutubeLink: any
-  onDrop: any
+  onYoutubeLink?: any
+  onDrop?: any
 }) => {
   const onDrop = useCallback(
     (acceptedFiles) => {

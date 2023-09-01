@@ -180,21 +180,25 @@ export const VirtualPiano = (props: ThreeElements['mesh']) => {
   )
 
   useEffect(() => {
-    setHandlePreviewNoteDown((m, v) => {
+    setHandlePreviewNoteDown((m, v, p) => {
       refPianoKeys.current[m - START_MIDI_KEY].color.set('blue')
 
-      pianoPlayer.start({
-        note: m,
-        velocity: v,
-      })
+      if (p) {
+        pianoPlayer.start({
+          note: m,
+          velocity: v,
+        })
+      }
     })
 
-    setHandlePreviewNoteUp((m) => {
+    setHandlePreviewNoteUp((m, _v, p) => {
       refPianoKeys.current[m - START_MIDI_KEY].color.set(
         keyModels[m - START_MIDI_KEY].isWhiteKey() ? 'white' : 'black'
       )
 
-      pianoPlayer.stop(m)
+      if (p) {
+        pianoPlayer.stop(m)
+      }
     })
   }, [setHandlePreviewNoteDown, setHandlePreviewNoteUp])
 

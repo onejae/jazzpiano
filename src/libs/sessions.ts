@@ -1,4 +1,5 @@
 import * as MIDI from 'midicube'
+import { ITimeEvent } from 'types/midi'
 
 export {}
 
@@ -11,22 +12,24 @@ declare global {
 window.MIDI = MIDI
 
 const family_channel = {
+  piano: 0,
   bass: 1,
   drums: 2,
 }
 
 MIDI.loadPlugin({
-  // this only has piano.
-  // for other sounds install the MIDI.js
-  // soundfonts somewhere.
   soundfontUrl: '/demo/jukebox/soundfont/FluidR3_GM/',
-  //   instrument: 'drums',
-  instruments: ['drums', 'acoustic_bass'], // or multiple instruments
+  instruments: ['drums', 'acoustic_bass', 'bright_acoustic_piano'], // or multiple instruments
 
   onerror: (e) => {
     console.log(e)
   },
   onsuccess: () => {
+    MIDI.programChange(
+      family_channel['piano'],
+      MIDI.GM.byName['bright_acoustic_piano'].program
+    )
+
     MIDI.programChange(
       family_channel['drums'],
       MIDI.GM.byName['acoustic_grand_piano'].program
@@ -47,14 +50,50 @@ class SessionPlayer {
   }
 
   noteOn(family: string, pitch: number, velocity: number, delay: number) {
-    this.midiPlayer.noteOn(family_channel[family], pitch, velocity * 0.6, delay)
+    this.midiPlayer.noteOn(
+      family_channel[family],
+      pitch,
+      velocity * (family === 'piano' ? 1 : 0.6),
+      delay
+    )
   }
 
-  noteOff(family: string, pitch: number) {
-    this.midiPlayer.noteOff(family_channel[family], pitch, 0)
+  noteOff(family: string, pitch: number, delay: number) {
+    this.midiPlayer.noteOff(family_channel[family], pitch, delay)
   }
 }
 
 const sessionPlayer = new SessionPlayer()
 
 export default sessionPlayer
+
+export class TimeTracker {
+  notes: ITimeEvent[]
+  cursor: number
+
+  constructor(notes: ITimeEvent[]) {
+    this.cursor = 0
+    this.notes = notes
+  }
+
+  getNotesByTime(time: number): ITimeEvent[] {
+    const notes = []
+
+    while (this.cursor < this.notes.length) {
+      const candidate = this.notes[this.cursor]
+
+      if (candidate.start_s <= time) {
+        notes.push(candidate)
+        this.cursor += 1
+      } else {
+        break
+      }
+    }
+
+    return notes
+  }
+
+  init() {
+    this.cursor = 0
+  }
+}

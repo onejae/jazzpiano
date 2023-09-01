@@ -92,6 +92,12 @@ const playItems = [
     avatarPath: '/avatar/beethoven.jpeg',
     midiPath: '/midi_files/mond_2_format0.mid',
   },
+  {
+    title: 'I thought about you',
+    artist: 'Miles davis',
+    avatarPath: '/avatar/miles.jpeg',
+    midiPath: '/midi_files/ithoughaboutyou.mid',
+  },
 ]
 
 const Jukebox = () => {
@@ -133,11 +139,18 @@ const Jukebox = () => {
     [setPlayingState]
   )
 
+  const initTimer = () => {
+    g_RenderState.start = null
+    g_RenderState.timer = 0
+  }
+
   const handleItemSelect = useCallback(
     (item: PlayItem) => {
       if (playingItem && item.midiPath === playingItem.midiPath) {
         return
       }
+
+      initTimer()
 
       axios
         .get('/demo/jukebox' + item.midiPath, {
@@ -191,8 +204,7 @@ const Jukebox = () => {
       requestRef.current = requestAnimationFrame(processSession)
     } else {
       if (playingState === 'stopped') {
-        g_RenderState.start = null
-        g_RenderState.timer = 0
+        initTimer()
         cancelAnimationFrame(requestRef.current)
       }
     }
@@ -204,6 +216,7 @@ const Jukebox = () => {
     if (!noteEvents) {
       handleItemSelect(playItems[0])
     }
+
     refSessionTracker.current = new TimeTracker(noteEvents)
   }, [handleItemSelect, noteEvents])
 

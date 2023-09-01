@@ -9,7 +9,7 @@ import { KeyRenderSpace } from '@components/VirtualPiano'
 import { useMidiControl } from '../providers/MidiControl'
 import { useTransport } from '@providers/TransportProvider'
 
-import sessionPlayer, { TimeTracker } from '@libs/sessions'
+import { TimeTracker } from '@libs/sessions'
 import { g_RenderState } from 'global'
 
 interface PianoRollProps {
@@ -90,11 +90,9 @@ const PianoRoll = (props: PianoRollProps & ThreeElements['mesh']) => {
         return
       const block = renderInfo.current.blockRail[midiNumber][0]
       // score the touch
-      // const score = scoreUserTouch(block, renderInfo.current.timer)
       const score = scoreUserTouch(block, g_RenderState.timer)
       console.log(score)
       // end of scoring
-      // if (block.noteEvent.start_s <= renderInfo.current.timer) {
       if (block.noteEvent.start_s <= g_RenderState.timer) {
         renderInfo.current.blockRail[midiNumber].shift()
       }
@@ -197,7 +195,6 @@ const PianoRoll = (props: PianoRollProps & ThreeElements['mesh']) => {
 
         const block = renderInfo.current.blockRail[keyName][0]
 
-        // if (block.noteEvent.start_s <= renderInfo.current.timer) {
         if (block.noteEvent.start_s <= g_RenderState.timer) {
           if (!block.noteEvent.played && refHandlePreviewNoteDown.current) {
             if (block.noteEvent.family === 'piano') {
@@ -212,7 +209,6 @@ const PianoRoll = (props: PianoRollProps & ThreeElements['mesh']) => {
           }
         }
 
-        // if (block.noteEvent.end_s <= renderInfo.current.timer) {
         if (block.noteEvent.end_s <= g_RenderState.timer) {
           if (refHandlePreviewNoteUp.current && playingMode === 'preview')
             if (block.noteEvent.family === 'piano') {
@@ -226,25 +222,19 @@ const PianoRoll = (props: PianoRollProps & ThreeElements['mesh']) => {
       })
     }
 
-    useFrame((_state, delta) => {
+    useFrame((_state, _delta) => {
       if (!renderInfo.current || renderInfo.current.status != 'LOADED') return
 
       if (playingState === 'stopped') return
 
       if (playingState === 'paused') {
         processBlocks()
-        ref.current.position.setY(
-          // -Y_LENGTH_PER_SECOND * renderInfo.current.timer
-          -Y_LENGTH_PER_SECOND * g_RenderState.timer
-        )
+        ref.current.position.setY(-Y_LENGTH_PER_SECOND * g_RenderState.timer)
         return
       }
 
-      // renderInfo.current.timer += delta
-
       processBlocks()
 
-      // ref.current.position.setY(-Y_LENGTH_PER_SECOND * renderInfo.current.timer)
       ref.current.position.setY(-Y_LENGTH_PER_SECOND * g_RenderState.timer)
     })
 

@@ -83,7 +83,7 @@ export class TimeTracker {
       const candidate = this.notes[this.cursor]
 
       if (candidate.start_s <= time) {
-        notes.push(candidate)
+        if (candidate.end_s >= time) notes.push(candidate)
         this.cursor += 1
       } else {
         break

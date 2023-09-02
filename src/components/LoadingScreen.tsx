@@ -4,7 +4,7 @@ import {
   LinearProgress,
   Typography,
 } from '@mui/material'
-import axios from 'axios'
+import * as _axios from 'axios'
 import { useEffect, useState } from 'react'
 
 enum LoadingState {
@@ -18,42 +18,46 @@ enum SpinningType {
   NOLOCK = 1,
 }
 
-const LoadingScreen = () => {
+const LoadingScreen = ({ loading }) => {
   const [loadingState, setLoadingState] = useState<LoadingState>(
     LoadingState.INIT
   )
 
-  const [spinningType, setSpinningType] = useState<SpinningType>(
-    SpinningType.NOLOCK
+  const [spinningType, _setSpinningType] = useState<SpinningType>(
+    SpinningType.LOCK
   )
 
   useEffect(() => {
-    const requestInterceptor = axios.interceptors.request.use((config) => {
-      setSpinningType(
-        ['post', 'put', 'get'].includes(config.method || 'get')
-          ? SpinningType.LOCK
-          : SpinningType.NOLOCK
-      )
-      setLoadingState(LoadingState.LOADING)
-      return config
-    })
+    setLoadingState(loading ? LoadingState.LOADING : LoadingState.DONE)
+  }, [loading])
 
-    const responseInterceptor = axios.interceptors.response.use(
-      (response) => {
-        setLoadingState(LoadingState.DONE)
-        return response
-      },
-      (error) => {
-        setLoadingState(LoadingState.INIT)
-        return Promise.reject(error)
-      }
-    )
+  // useEffect(() => {
+  //   const requestInterceptor = axios.interceptors.request.use((config) => {
+  //     setSpinningType(
+  //       ['post', 'put', 'get'].includes(config.method || 'get')
+  //         ? SpinningType.LOCK
+  //         : SpinningType.NOLOCK
+  //     )
+  //     setLoadingState(LoadingState.LOADING)
+  //     return config
+  //   })
 
-    return () => {
-      axios.interceptors.request.eject(requestInterceptor)
-      axios.interceptors.response.eject(responseInterceptor)
-    }
-  }, [])
+  //   const responseInterceptor = axios.interceptors.response.use(
+  //     (response) => {
+  //       setLoadingState(LoadingState.DONE)
+  //       return response
+  //     },
+  //     (error) => {
+  //       setLoadingState(LoadingState.INIT)
+  //       return Promise.reject(error)
+  //     }
+  //   )
+
+  //   return () => {
+  //     axios.interceptors.request.eject(requestInterceptor)
+  //     axios.interceptors.response.eject(responseInterceptor)
+  //   }
+  // }, [])
 
   return (
     <>
@@ -75,7 +79,7 @@ const LoadingScreen = () => {
           >
             <Box display="flex" flexDirection="column" alignItems="center">
               <CircularProgress />
-              <Typography color="white">Loading...</Typography>
+              <Typography color="#FF1234">Loading...</Typography>
             </Box>
           </Box>
         )}

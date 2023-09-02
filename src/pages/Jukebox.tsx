@@ -8,22 +8,23 @@ import { getNoteEventsFromTonejs } from '@services/convertService'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { NoteEvent } from 'types/midi'
 
+import { MovingStars } from '@components/InfiniteBackround'
 import { TransportGroup } from '@components/TransportGroup'
 import { VirtualPiano } from '@components/VirtualPiano'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { Midi } from '@tonejs/midi'
-import { MovingStars } from '@components/InfiniteBackround'
 
-import * as THREE from 'three'
 import { PlayItem, PlayList } from '@components/PlayList'
+import * as THREE from 'three'
 
-import PlayArrowIcon from '@mui/icons-material/PlayArrow'
-import PauseIcon from '@mui/icons-material/Pause'
-import axios from 'axios'
 import LoadingScreen from '@components/LoadingScreen'
+import PauseIcon from '@mui/icons-material/Pause'
+import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 
 import sessionPlayer, { TimeTracker } from '@libs/sessions'
 import { g_RenderState } from 'global'
+
+import { useQuery } from 'react-query'
 
 const touchLinePosition = new THREE.Vector3(0, -3, 0)
 
@@ -75,6 +76,12 @@ const SmallTransportPanel = () => {
 
 const playItems = [
   {
+    title: 'I thought about you',
+    artist: 'Miles davis',
+    avatarPath: '/avatar/miles.jpeg',
+    midiPath: '/midi_files/ithoughaboutyou.mid',
+  },
+  {
     title: 'All the things you are',
     artist: 'Bill evans',
     avatarPath: '/avatar/bill.jpeg',
@@ -92,21 +99,16 @@ const playItems = [
     avatarPath: '/avatar/beethoven.jpeg',
     midiPath: '/midi_files/mond_2_format0.mid',
   },
-  {
-    title: 'I thought about you',
-    artist: 'Miles davis',
-    avatarPath: '/avatar/miles.jpeg',
-    midiPath: '/midi_files/ithoughaboutyou.mid',
-  },
 ]
 
 const Jukebox = () => {
   const [noteEvents, setNoteEvents] = useState<NoteEvent[] | null>(null)
   const { playingState, setPlayingState } = useTransport()
-  const [playingItem, setPlayingItem] = useState(null)
 
   const refSessionTracker = useRef<TimeTracker>(null)
   const requestRef = useRef<number>(0)
+
+  const [loading, setLoading] = useState<'INIT' | 'LOADING' | 'DONE'>('INIT')
 
   const Background = () => {
     const timeRef = useRef(0)
@@ -144,30 +146,29 @@ const Jukebox = () => {
     g_RenderState.timer = 0
   }
 
+  useQuery('TMP', () => {
+    if (loading === 'INIT') handleItemSelect(playItems[0])
+  })
+
   const handleItemSelect = useCallback(
     (item: PlayItem) => {
-      if (playingItem && item.midiPath === playingItem.midiPath) {
-        return
-      }
-
       initTimer()
 
-      axios
-        .get('/demo/jukebox' + item.midiPath, {
-          responseType: 'arraybuffer', // Set the responseType to 'arraybuffer'
-        })
-        .then((e) => {
-          const midi = new Midi(e.data)
+      setLoading('LOADING')
+      fetch('/demo/jukebox/' + item.midiPath).then(async (response) => {
+        if (response.ok) {
+          const midi = new Midi(await response.arrayBuffer())
 
           const noteEvents = getNoteEventsFromTonejs(midi)
 
           setNoteEvents(noteEvents)
           setPlayingState('stopped')
-        })
-
-      setPlayingItem(item)
+          setLoading('DONE')
+        }
+      })
     },
-    [playingItem, setPlayingState]
+
+    [setPlayingState]
   )
 
   const processSession = useCallback(
@@ -213,12 +214,8 @@ const Jukebox = () => {
   }, [playingState, processSession])
 
   useEffect(() => {
-    if (!noteEvents) {
-      handleItemSelect(playItems[0])
-    }
-
     refSessionTracker.current = new TimeTracker(noteEvents)
-  }, [handleItemSelect, noteEvents])
+  }, [noteEvents])
 
   return (
     <Box display="flex" flexDirection={'column'} padding={0}>
@@ -279,17 +276,19 @@ const Jukebox = () => {
             </Canvas>
           </div>
 
-          <Box
-            position="absolute"
-            zIndex={9999}
-            top={'calc(50vh - 120px)'}
-            bottom={'25%'}
-          >
-            <SmallTransportPanel />
-          </Box>
+          {loading === 'DONE' && (
+            <Box
+              position="absolute"
+              zIndex={9999}
+              top={'calc(50vh - 120px)'}
+              bottom={'25%'}
+            >
+              <SmallTransportPanel />
+            </Box>
+          )}
         </div>
       </Box>
-      <LoadingScreen />
+      <LoadingScreen loading={loading === 'LOADING'} />
     </Box>
   )
 }

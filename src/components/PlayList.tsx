@@ -56,6 +56,16 @@ export const PlayList = ({ playItems = [], onSelect }: PlayListProps) => {
                   setSelectIdx(idx)
                   onSelect(item)
                 }}
+                onKeyDown={(e) => {
+                  if (e.code === 'Space') {
+                    e.preventDefault()
+                  }
+                }}
+                onKeyUp={(e) => {
+                  if (e.code === 'Space') {
+                    e.preventDefault()
+                  }
+                }}
               >
                 <ListItemAvatar>
                   <Avatar

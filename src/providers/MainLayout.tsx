@@ -228,7 +228,7 @@ const MainLayout = () => {
                 <Button sx={{ minWidth: 100 }}>Sign in</Button>
               </Box>
             </Toolbar>
-            <LoadingScreen />
+            <LoadingScreen loading={false} />
           </AppBar>
           <Box
             component="main"
